@@ -10,8 +10,24 @@ import Web3 from 'web3'
 
 let getWeb3 = new Promise(function (resolve, reject) {
   // Check for injected web3 (mist/metamask)
-  var web3js = window.web3
-  if (typeof web3js !== 'undefined') {
+  var ethereum = window.ethereum;
+  if (ethereum) {
+    var web3 = new Web3(ethereum);
+    try {
+      ethereum.enable().then(response => {
+        resolve({
+          injectedWeb3: web3.isConnected(),
+          web3 () {
+            return web3
+          }
+        })
+      }).catch(err => {
+        reject(new Error(err));
+      })
+    } catch (err) {
+      reject(new Error(err))
+    }
+  } else if (window.web3) {
     var web3 = new Web3(web3js.currentProvider)
     resolve({
       injectedWeb3: web3.isConnected(),
@@ -20,7 +36,6 @@ let getWeb3 = new Promise(function (resolve, reject) {
       }
     })
   } else {
-    // web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545')) GANACHE FALLBACK
     reject(new Error('Unable to connect to Metamask'))
   }
 })
@@ -40,6 +55,7 @@ let getWeb3 = new Promise(function (resolve, reject) {
     })
   })
   .then(result => {
+    console.log('Result ', result.web3().eth);
     return new Promise(function (resolve, reject) {
       // Retrieve coinbase
       result.web3().eth.getCoinbase((err, coinbase) => {
