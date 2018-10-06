@@ -22,11 +22,7 @@
       </vue-grid-item>
     </vue-grid-row>
 
-    <!--TODO: show a warning if person is not on Main Net-->
-    <!--<vue-grid-row>-->
-        <!--<h4>{{ $t('App.helloMetaMask.unsupportedNetwork' /* This is an unsupported network. Please switch to the-->
-          <!--Main Network. */) }}</h4>-->
-    <!--</vue-grid-row>-->
+    <vue-button v-if="!isInjected" @click="openConsent" class="metamask-button">CONNECT METAMASK</vue-button>
 
   </vue-grid>
 </template>
@@ -44,6 +40,11 @@
           content: ""
         }
       ]
+    },
+    methods: {
+      openConsent() {
+        window.ethereum.enable()
+      }
     },
     name: "hello-metamask",
     computed: mapState({
@@ -63,6 +64,14 @@
   .metamask-info {
     text-align: center;
     margin-top: 50px;
+  }
+
+  .metamask-button {
+    width: auto;
+    height: auto;
+    box-shadow: 0 11px 24px rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    background-image: linear-gradient(167deg, #f8911e 0%, #e8821e 48%, #d46d18 100%);
   }
 
   #has-metamask {
