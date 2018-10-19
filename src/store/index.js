@@ -6,6 +6,7 @@ import pollWeb3 from '../util/pollWeb3';
 import getContract from '../util/getContract';
 import signInModal from './modules/signInModal';
 import mainnetModal from './modules/mainnetModal';
+import cookieConsentVersion from './modules/cookieConsentVersion';
 
 Vue.use(Vuex);
 
@@ -17,7 +18,6 @@ export const store = new Vuex.Store({
   },
   mutations: {
     registerWeb3Instance(state, payload) {
-      // console.log('registerWeb3instance Mutation being executed', payload);
       let result = payload;
       let web3Copy = state.web3;
       web3Copy.coinbase = result.coinbase;
@@ -29,7 +29,6 @@ export const store = new Vuex.Store({
       pollWeb3();
     },
     pollWeb3Instance(state, payload) {
-      // console.log('pollWeb3Instance mutation being executed', payload);
       state.web3.coinbase = payload.coinbase;
       state.web3.balance = parseInt(payload.balance, 10);
     },
@@ -40,10 +39,8 @@ export const store = new Vuex.Store({
   },
   actions: {
     registerWeb3({ commit }) {
-      // console.log('registerWeb3 Action being executed');
       getWeb3
         .then(result => {
-          // console.log('committing result to registerWeb3Instance mutation');
           commit('registerWeb3Instance', result);
         })
         .catch(error => {
@@ -51,7 +48,6 @@ export const store = new Vuex.Store({
         });
     },
     pollWeb3({ commit }, payload) {
-      // console.log('pollWeb3 action being executed');
       commit('pollWeb3Instance', payload);
     },
     getContractInstance({ commit }) {
@@ -63,11 +59,15 @@ export const store = new Vuex.Store({
     },
     changeLocale({ commit }) {
           commit('CHANGE_LOCALE', locale);
+    },
+    setCookieConsentVersion({ commit }) {
+      commit('SET_COOKIE_CONSENT_VERSION', version);
     }
   },
   modules: {
     signInModal,
-    mainnetModal
+    mainnetModal,
+    cookieConsentVersion
   }
 });
 

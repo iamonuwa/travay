@@ -27,3 +27,16 @@ export const CLOSE_NETWORK_MODAL = 'CLOSE_NETWORK_MODAL';
 
 //  Mutations
 export const SET_NETWORK_MODAL_OPEN = 'SET_NETWORK_MODAL_OPEN';
+
+/**
+ * Cookie Consent Version
+ */
+
+// Getters
+export const GET_COOKIE_CONSENT_VERSION = 'GET_COOKIE_CONSENT_VERSION';
+
+// Actions
+export const SET_COOKIE_CONSENT_VERSION = 'SET_COOKIE_CONSENT_VERSION';
+
+//  Mutations
+export const COOKIE_CONSENT_VERSION = 'COOKIE_CONSENT_VERSION';

@@ -1,104 +1,39 @@
 <template>
-  <div>
+  <vue-grid>
 
-    <div>
-      <vue-grid>
-        <vue-grid-row>
-          <vue-grid-item class="vueGridItem">
-            <h1>{{ $t('App.nav.jobs' /* Jobs */) }}</h1>
-            <!--<p>-->
-            <!--{{ $t('App.jobs.pageSubtitle' /* Here you'll find 6-month and 12-month jobs. */) }}-->
-            <!--</p>-->
-          </vue-grid-item>
-        </vue-grid-row>
-      </vue-grid>
-    </div>
+    <vue-grid-row>
+      <vue-grid-item class="vueGridItem">
+        <h1>{{ $t('App.nav.jobs' /* Jobs */) }}</h1>
+        <!--<p>-->
+        <!--{{ $t('App.jobs.pageSubtitle' /* Here you'll find 6-month and 12-month jobs. */) }}-->
+        <!--</p>-->
+      </vue-grid-item>
+    </vue-grid-row>
     <br>
 
-    <vue-grid>
-      <!--<vue-grid-row>-->
+    <vue-grid-row>
+      <vue-grid-item>
+        <vue-button
+          @click.prevent.stop="e => postAJob()"
+          accent>
+          <a style="color: white !important;">{{
+            $t('App.jobs.postAJobButton' /* Post a Job */) }}</a>
+        </vue-button>
+      </vue-grid-item>
+    </vue-grid-row>
+
+    <br>
+
+    <!--<vue-gird-row>-->
       <!--<vue-grid-item>-->
-      <!--<ul class="filter-bar">-->
-      <!--<li class="filter__item">{{ $t('App.jobs.search' /* Search */) }}:-->
-      <!--<input type="text" name="search" v-model="keyword" />-->
-      <!--</li>-->
-
-      <!--<li class="filter__item">{{ $t('App.jobs.filter' /* Filter */) }}:-->
-      <!--</li>-->
-
-      <!--<li-->
-      <!--<select v-model="filterType">-->
-      <!--<option value="all">All</option>-->
-      <!--<option-->
-      <!--v-for="type in types"-->
-      <!--v-bind:value="type.id"-->
-      <!--v-bind:key="type.id"-->
-      <!--&gt;-->
-      <!--{{ type.title }}-->
-      <!--</option>-->
-      <!--</select>-->
-      <!--<select v-if="isFilteringBySalary" v-model='startRange'>-->
-      <!--<option>Select a Start range</option>-->
-      <!--<option-->
-      <!--v-for="amount in amounts"-->
-      <!--v-bind:value="amount.value"-->
-      <!--v-bind:key="amount.id"-->
-      <!--&gt;-->
-      <!--{{ amount.id }}-->
-      <!--</option>-->
-      <!--</select>-->
-      <!--<select v-if="isFilteringBySalary" v-model='endRange'>-->
-      <!--<option>Select a End range</option>-->
-      <!--<option-->
-      <!--v-for="amount in amounts"-->
-      <!--v-bind:value="amount.value"-->
-      <!--v-bind:key="amount.id"-->
-      <!--&gt;-->
-      <!--{{ amount.id }}-->
-      <!--</option>-->
-      <!--</select>-->
-      <!--<select v-if="isFilteringBySkill" v-model='skill'>-->
-      <!--<option>Select a Skill</option>-->
-      <!--<option-->
-      <!--v-for="skill in skills"-->
-      <!--v-bind:value="skill.value"-->
-      <!--v-bind:key="skill.id"-->
-      <!--&gt;-->
-      <!--{{ skill.id }}-->
-      <!--</option>-->
-      <!--</select>-->
-      <!--<select v-if="isFilteringByDomain" v-model='domain'>-->
-      <!--<option value="">Select a Domain</option>-->
-      <!--<option-->
-      <!--v-for="domain in domains"-->
-      <!--v-bind:value="domain.value"-->
-      <!--v-bind:key="domain.id"-->
-      <!--&gt;-->
-      <!--{{ domain.id }}-->
-      <!--</option>-->
-      <!--</select>-->
-      <!--</li>-->
-      <!--</ul>-->
+        <!--<ais-search-box :autofocus="true"></ais-search-box>-->
       <!--</vue-grid-item>-->
-      <!--</vue-grid-row>-->
-      <br>
+    <!--</vue-gird-row>-->
 
-      <vue-grid-row>
-        <vue-grid-item>
-          <vue-button
-            class="sponsor-btn--container" accent>
-            <a style="color: white !important;" @click.prevent.stop="e => createJobClicked()"
-               id="remove-hyperlink">{{ $t('App.jobs.postAJobButton' /* Post a Job */) }}</a>
-          </vue-button>
-        </vue-grid-item>
-      </vue-grid-row>
-
-      <br>
-
-      <sponsor-modal
-        :job="jobToSponsor"
-        :show.sync="showSponsoredModal"
-        @sponsorSubmit="amount => sponsorSubmit({
+    <sponsor-modal
+      :job="jobToSponsor"
+      :show.sync="showSponsoredModal"
+      @sponsorSubmit="amount => sponsorSubmit({
           amount,
           taskId: this.selectedJobToSponsorId, task: this.jobToSponsor.task,
           task: this.jobToSponsor.task || '',
@@ -106,78 +41,78 @@
           })"></sponsor-modal>
 
 
-      <vue-grid-row>
-        <vue-grid-item>
-          <hr>
-          <vue-panel v-for="job in filteredJobs" v-bind:key="job.taskId">
-            <!-- <vue-panel-header title="Title" subtitle="subtitle"
-                              image="https://avatars2.githubusercontent.com/u/1667598?s=460&v=4" /> -->
-            <vue-panel-body>
-              <ul>
-                <li>
-                  <strong>{{job.task}}</strong><br><br>
-                  <strong>{{ $t('App.job.jobDescription' /* Description */) }}:</strong> {{job.brief}}<br><br>
-                  <strong>{{ $t('App.job.jobDomain' /* Domain */) }}:</strong> {{job.domain}}<br><br>
-                  <strong>{{ $t('App.job.jobSkill' /* Desired Skill */) }}:</strong> {{job.skill}}<br><br>
-                  <strong>{{ $t('App.job.termOfEmployment' /* Desired Skill */) }}:</strong>
-                  {{job.termOfEmployment}}<br><br>
-                  <strong>{{ $t('App.job.cityOfWork' /* City of Work */) }}:</strong> {{ job.cityOfWork }}<br><br>
-                  <strong>{{ $t('App.job.jobSalary' /* Salary (USD) */) }}:</strong>
-                  ${{job.salary['full-time-rate']}}<br><br>
-                  <!--Pay frequency:-->
-                  <!--<input id="weekly" true-value="weekly" type="checkbox" name="weekly"-->
-                  <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
-                  <!--<label for="weekly">Weekly</label>-->
-                  <!--<input id="bi-weekly" type="checkbox" true-value="bi-weekly" name="bi-weekly"-->
-                  <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
-                  <!--<label for="bi-weekly">Bi-weekly</label>-->
-                  <!--<input id="monthly" true-value="monthly" type="checkbox" name="monthly"-->
-                  <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
-                  <!--<label for="monthly">Monthly</label><br>-->
-                  <!--Term of employment:-->
-                  <!--<input id="sixmonth" type="checkbox" name="sixmonth" v-model="job['terms-of-employment']"-->
-                  <!--true-value="6" disabled/>-->
-                  <!--<label for="sixmonth">6 month</label>-->
-                  <!--<input id="oneyear" type="checkbox" name="oneyear" v-model="job['terms-of-employment']"-->
-                  <!--true-value="12" disabled/>-->
-                  <!--<label for="oneyear">1 year</label>-->
-                  <strong>{{ $t('App.job.datePosted' /* Date Posted */) }}:</strong> {{ job['date-posted'] | moment }}<br>
-                </li>
-              </ul>
-            </vue-panel-body>
-            <vue-panel-footer>
+    <vue-grid-row>
+      <vue-grid-item>
+        <hr>
+        <vue-panel v-for="job in filteredJobs" v-bind:key="job.taskId">
+          <!-- <vue-panel-header title="Title" subtitle="subtitle"
+                            image="https://avatars2.githubusercontent.com/u/1667598?s=460&v=4" /> -->
+          <vue-panel-body>
+            <ul>
+              <li>
+                <strong>{{job.task}}</strong><br><br>
+                <strong>{{ $t('App.job.jobDescription' /* Description */) }}:</strong> {{job.brief}}<br><br>
+                <strong>{{ $t('App.job.jobDomain' /* Domain */) }}:</strong> {{job.domain}}<br><br>
+                <strong>{{ $t('App.job.jobSkill' /* Desired Skill */) }}:</strong> {{job.skill}}<br><br>
+                <strong>{{ $t('App.job.termOfEmployment' /* Desired Skill */) }}:</strong>
+                {{job.termOfEmployment}}<br><br>
+                <strong>{{ $t('App.job.cityOfWork' /* City of Work */) }}:</strong> {{ job.cityOfWork }}<br><br>
+                <strong>{{ $t('App.job.jobSalary' /* Salary (USD) */) }}:</strong>
+                ${{job.salary['full-time-rate']}}<br><br>
+                <!--Pay frequency:-->
+                <!--<input id="weekly" true-value="weekly" type="checkbox" name="weekly"-->
+                <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
+                <!--<label for="weekly">Weekly</label>-->
+                <!--<input id="bi-weekly" type="checkbox" true-value="bi-weekly" name="bi-weekly"-->
+                <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
+                <!--<label for="bi-weekly">Bi-weekly</label>-->
+                <!--<input id="monthly" true-value="monthly" type="checkbox" name="monthly"-->
+                <!--v-model="job.salary['pay-frequency'].label" disabled/>-->
+                <!--<label for="monthly">Monthly</label><br>-->
+                <!--Term of employment:-->
+                <!--<input id="sixmonth" type="checkbox" name="sixmonth" v-model="job['terms-of-employment']"-->
+                <!--true-value="6" disabled/>-->
+                <!--<label for="sixmonth">6 month</label>-->
+                <!--<input id="oneyear" type="checkbox" name="oneyear" v-model="job['terms-of-employment']"-->
+                <!--true-value="12" disabled/>-->
+                <!--<label for="oneyear">1 year</label>-->
+                <strong>{{ $t('App.job.datePosted' /* Date Posted */) }}:</strong> {{ job['date-posted'] | moment
+                }}<br>
+              </li>
+            </ul>
+          </vue-panel-body>
+          <vue-panel-footer>
+            <router-link :to="`/job/${job.taskId}`">
               <vue-button primary>
-                <router-link :to="`/job/${job.taskId}`" style="color:white; text-decoration: none;">{{
-                  $t('App.jobs.learnMoreButton' /* LEARN MORE */) }}
-                </router-link>
+                {{ $t('App.jobs.learnMoreButton' /* LEARN MORE */) }}
               </vue-button>
-              <br/>
-              <br/>
-              <vue-button v-userRole.canSponsor="{role: job.role}"
-                          class="sponsor-btn--container"
-                          accent>
-                <a
-                  style="color: white !important;"
-                  @click.prevent.stop="e => sponsorJob(job.taskId)">{{ $t('App.job.sponsorJobButton' /* Sponsor This Job
-                  */) }}</a>
-              </vue-button>
+            </router-link>
+            <br/>
+            <br/>
+            <div v-if="job.role">
+              <a @click.prevent.stop="e => sponsorJob(job.taskId)">
+                <vue-button :v-userRole.canSponsor="{role: job.role}"
+                            style="color: white !important;"
+                            accent>
+                  {{ $t('App.job.sponsorJobButton' /* Sponsor This Job */) }}
+                </vue-button>
+              </a>
+            </div>
+          </vue-panel-footer>
+        </vue-panel>
+        <hr>
+      </vue-grid-item>
 
-            </vue-panel-footer>
-            <br>
-          </vue-panel>
-          <br>
-        </vue-grid-item>
+    </vue-grid-row>
 
-      </vue-grid-row>
-    </vue-grid>
-  </div>
+  </vue-grid>
 </template>
 
 <script>
   import {mapActions, mapGetters} from 'vuex';
   import axios from 'axios';
   import firebase from 'firebase';
-  import db from '../firebaseinit-dev';
+  import db from '../firebaseinit';
   import SponsorModal from '../services/SponsorModal.vue';
   import {uuid} from 'vue-uuid';
   import moment from 'moment';
@@ -186,6 +121,7 @@
   import truffleContract from "truffle-contract";
   import EscrowContract from "../../contracts/build/contracts/Escrow"
   import {store} from '../store';
+  // import InstantSearch from 'vue-instantsearch';
 
   export default {
     mixins: [sponsorSubmitMixin],
@@ -299,19 +235,20 @@
     },
     filters: {
       moment: function (date) {
-        return moment(date).format('MMMM Do YYYY');
+        return moment(date).format('Do MMMM YYYY');
       }
     },
     methods: {
       // ...mapActions('signInModal', ['openLoginModal', 'closeLoginModal']),
       ...mapActions({
         openLoginModal: types.OPEN_LOGIN_MODAL,
-        closeLoginModal: types.CLOSE_LOGIN_MODAL
+        closeLoginModal: types.CLOSE_LOGIN_MODAL,
+        openNetworkModal: types.OPEN_NETWORK_MODAL
       }),
       moment: function () {
         return moment();
       },
-      createJobClicked() {
+      postAJob() {
         if (!this.userId) {
           this.openLoginModal();
           return;
@@ -319,6 +256,16 @@
         this.$router.push('createJob');
       },
       sponsorJob(taskId) {
+
+        if (this.$store.state.web3.networkId !== "1") {
+          this.openNetworkModal();
+          return;
+        }
+
+        // Add Analytics event
+        this.$ma.trackEvent({category: 'Click', action: 'Sponsor Job from Jobs Page', label: 'Sponsor Job from Jobs Page', value:
+            ''});
+
         if (!this.userId) {
           this.openLoginModal();
           return;
@@ -423,5 +370,4 @@
 </script>
 
 <style scoped>
-
 </style>

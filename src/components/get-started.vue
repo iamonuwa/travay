@@ -9,16 +9,16 @@
       <vue-grid-item>
         <h2>{{ $t('App.getStarted.jobWorkersTitle' /* Job Workers */) }}</h2>
         <ol>
-          <li>{{ $t('App.getStarted.install' /* Install */) }} <a
-            href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=fr" target="_blank">Firefox</a>
+          <li>{{ $t('App.getStarted.install' /* Install */) }} <a rel="noopener noreferrer"
+                                                                  href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=fr" target="_blank">Firefox</a>
             {{ $t('App.getStarted.browser' /* browser */) }}.
           </li>
-          <li>{{ $t('App.getStarted.step2' /* Log into Travay with your Gmail Account. Don't have one? Sign up */) }} <a
-            href="https://accounts.google.com/signup/v2/webcreateaccount?continue=https%3A%2F%2Faccounts.google.com%2FManageAccount&hl=fr&flowName=GlifWebSignIn&flowEntry=SignUp"
+          <li>{{ $t('App.getStarted.step2' /* Log into Travay with your Gmail Account. Don't have one? Sign up */) }}
+            <a rel="noopener noreferrer"
+               href="https://accounts.google.com/signup/v2/webcreateaccount?continue=https%3A%2F%2Faccounts.google.com%2FManageAccount&hl=fr&flowName=GlifWebSignIn&flowEntry=SignUp"
             target="_blank">{{ $t('App.getStarted.here' /* here */) }}</a>.
           </li>
-          <li>{{ $t('App.getStarted.install' /* Install */) }} <a
-            href="https://addons.mozilla.org/en-US/firefox/addon/ether-metamask"
+          <li>{{ $t('App.getStarted.install' /* Install */) }} <a rel="noopener noreferrer" href="https://addons.mozilla.org/en-US/firefox/addon/ether-metamask"
             target="_blank">MetaMask</a> Firefox {{ $t('App.getStarted.extension' /* extension */) }}.
           </li>
           <li>
@@ -32,20 +32,21 @@
       <vue-grid-item>
         <h2>{{ $t('App.getStarted.jobPosters' /* Job Posters */) }}</h2>
         <ol>
-          <li>{{ $t('App.getStarted.install' /* Install */) }} <a
+          <li>{{ $t('App.getStarted.install' /* Install */) }} <a rel="noopener noreferrer"
             href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=fr" target="_blank">Firefox</a>
             {{ $t('App.getStarted.browser' /* browser */) }}.
           </li>
-          <li>{{ $t('App.getStarted.install' /* Install */) }} <a
+          <li>{{ $t('App.getStarted.install' /* Install */) }} <a rel="noopener noreferrer"
             href="https://addons.mozilla.org/en-US/firefox/addon/ether-metamask"
             target="_blank">MetaMask</a> Firefox {{ $t('App.getStarted.extension' /* extension */) }}.
           </li>
-          <li>{{ $t('App.getStarted.step2' /* Log into Travay with your Gmail Account. Don't have one? Sign up */) }} <a
+          <li>{{ $t('App.getStarted.step2' /* Log into Travay with your Gmail Account. Don't have one? Sign up */) }}
+            <a rel="noopener noreferrer"
             href="https://accounts.google.com/signup/v2/webcreateaccount?continue=https%3A%2F%2Faccounts.google.com%2FManageAccount&hl=fr&flowName=GlifWebSignIn&flowEntry=SignUp"
             target="_blank">{{ $t('App.getStarted.here' /* here */) }}</a>.
           </li>
           <li>
-            {{ $t('App.getStarted.fundMetaMask' /* Fund your MetaMask account with DAI by clicking */) }} <a
+            {{ $t('App.getStarted.fundMetaMask' /* Fund your MetaMask account with DAI by clicking */) }} <a rel="noopener noreferrer"
             href="https://kyber.network/swap/eth_dai" target="_blank">
             {{ $t('App.getStarted.here' /* here */) }}</a>.
           </li>

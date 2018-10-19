@@ -1,9 +1,11 @@
 <template>
   <footer id="footer-style">
     &copy; {{ year }} {{ $t('App.footer.company' /* company */) }} <br>
-    <router-link :to="'/userGuide'">{{ $t('App.footer.userGuide' /* User Guide */) }}</router-link> |
-    <router-link :to="'/get-started'">{{ $t('App.footer.getStartedGuide' /* Get Started */) }}</router-link> |
-    <router-link :to="'/code-of-conduct'">{{ $t('App.footer.codeOfConduct' /* Code of Conduct */) }}</router-link>
+    <a rel="noopener noreferrer" href="https://airtable.com/shrGJhkEk4SphwEXe" target="_blank">{{
+      $t('App.footer.getNotified' /* Get Notified of
+      New Jobs */) }}</a><br>
+    <p>{{ $t('App.footer.contractUs' /* Contact Us */) }}:
+      <a rel="noopener noreferrer" href="https://twitter.com/travayht" target="_blank">Twitter</a></p>
   </footer>
 </template>
 

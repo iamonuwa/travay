@@ -1,12 +1,12 @@
 <template>
-  <div :class="$style.sponsorModal" class="loading-parent">
+  <div :class="$style.sponsorModal">
+    <vue-modal class="loading-parent" :show="show" @close="(isLoading) ? $emit('update:show', true) : $emit('update:show', false)">
       <loading
-          :active.sync="isLoading" 
-          :can-cancel="false" 
-          :is-full-page="fullPage">
+        :active.sync="isLoading"
+        :can-cancel="false"
+        :is-full-page="fullPage">
       </loading>
-    <vue-modal :show="show" @close="$emit('update:show', false)">
-      <vue-button warn @click="$emit('update:show', false)">X</vue-button>
+      <vue-button warn @click="(isLoading) ? $emit('update:show', true) : $emit('update:show', false)">X</vue-button>
 
       <vue-input
         name="sponsorAmount"
@@ -28,7 +28,7 @@
       <br>
       <!--TODO: fix: modal overlay remains after navigating to new page-->
       <!--<p>You will need DAI to Sponsor a Job. You can get some <router-link :to="'/get-funds'">{{-->
-        <!--$t('App.footer.getStartedGuide' /* Get Started */) }}</router-link>.-->
+      <!--$t('App.footer.getStartedGuide' /* Get Started */) }}</router-link>.-->
       <!--</p>-->
 
     </vue-modal>
@@ -37,6 +37,8 @@
 
 <script>
   import {store} from '../store';
+  import * as types from '../store/types'
+  import {mapActions, mapGetters, mapMutations, mapState} from 'vuex';
   import {NETWORKS} from "../util/constants/networks";
   import truffleContract from "truffle-contract";
   import EscrowContract from "../../contracts/build/contracts/Escrow.json";
@@ -69,15 +71,11 @@
         taskId: "",
       };
     },
-    computed: {},
     methods: {
+      ...mapActions({
+        openNetworkModal: types.OPEN_NETWORK_MODAL
+      }),
       sponsorJob() {
-
-        // TODO: Uncomment this out when moving to production !!!!
-        // if (this.$store.state.web3.networkId !== "1") {
-        //   this.openNetworkModal();
-        //   return;
-        // }
 
         this.isLoading = true;
         this.sponsorAmountToEscrow()
@@ -91,6 +89,8 @@
           });
       },
       async sponsorAmountToEscrow() {
+
+        this.$ma.trackEvent({category: 'Click', action: 'Sponsor a Job', label: 'Sponsor a Job', value: ''});
 
         return new Promise(async (resolve, reject) => {
 
@@ -144,6 +144,15 @@
     display: block;
   }
   .loading-parent {
-  position: relative;
-}
+    position: relative;
+    z-index: 999;
+    height: 2em;
+    width: 2em;
+    overflow: show;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
 </style>

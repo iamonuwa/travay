@@ -9,7 +9,7 @@
 
     <vue-grid-row>
       <vue-grid-item>
-        <h2>Have Ether and need DAI?</h2>
+        <h2>Need DAI?</h2>
         <ol>
           <li>Click the button below</li>
           <li>Select the first option "MetaMask."</li>
@@ -17,13 +17,13 @@
           <li>Accept the prompts from MetaMask.</li>
         </ol>
         <br>
-        <vue-button primary @click.prevent="buy()">Buy DAI</vue-button>
+        <vue-button primary @click.prevent="buyDAI()">Buy DAI</vue-button>
       </vue-grid-item>
     </vue-grid-row>
 
     <vue-grid-row>
       <vue-grid-item>
-        <h2>Have DAI and need Ether?</h2>
+        <h2>Need Ether?</h2>
         <ol>
           <li>Click the button below</li>
           <li>Select the first option "MetaMask."</li>
@@ -31,10 +31,9 @@
           <li>Accept the prompts from MetaMask.</li>
         </ol>
         <br>
-        <vue-button primary @click.prevent="buy()">Buy DAI</vue-button>
+        <vue-button primary @click.prevent="buyETH()">Buy ETH</vue-button>
       </vue-grid-item>
     </vue-grid-row>
-
   </vue-grid>
 </template>
 
@@ -42,12 +41,26 @@
   export default {
     name: "get-funds",
     methods: {
-      buy() {
+      buyDAI() {
         AirSwap.Trader.render({
-          env: 'sandbox',
+          // env: 'sandbox',
+          env: 'production',
           mode: 'buy',
-          token: '0xc778417e063141139fce010982780140aa0cd5ab',
-          amount: 5 * (10 ** 4),
+          token: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
+          onCancel: function () {
+            console.info('Trade was canceled.');
+          },
+          onComplete: function (transactionId) {
+            console.info('Trade complete. Thank you, come again.');
+          }
+        }, 'body');
+      },
+      buyETH() {
+        AirSwap.Trader.render({
+          // env: 'sandbox',
+          env: 'production',
+          mode: 'buy',
+          token: '0x0000000000000000000000000000000000000000',
           onCancel: function () {
             console.info('Trade was canceled.');
           },

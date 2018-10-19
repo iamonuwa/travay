@@ -1,13 +1,15 @@
 const Escrow = artifacts.require("./Escrow.sol");
 const DAI = artifacts.require("./DAI.sol");
 
-const DAI_COIN_ADDRESS = "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359";
-
 // Main Net
-const ARBITRATOR = "0xa7c2662a534a0ae22e8b0f27d6a099e3b3971c6a";
+// Contract: https://etherscan.io/address/0xfa1909f6fe2120e3aa4a63883776250ba5042b60
+// const ARBITRATOR = "0xa7c2662a534a0ae22e8b0f27d6a099e3b3971c6a";
+// const DAI_COIN_ADDRESS = "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359";
 
 // Ropsten
-// const ARBITRATOR = "0xB06cEF6B14dd249f5a0977F645436cC4f4095325";
+// Contract: https://ropsten.etherscan.io/address/0x186d2514ab736a41b31b8d1f623de17f0ab8380f
+const ARBITRATOR = "0xB06cEF6B14dd249f5a0977F645436cC4f4095325";
+const DAI_COIN_ADDRESS = "0xee3ea3cd9afd7cb2c476d44a70fc9ed4cd3ba438";
 
 // Ropsten Deployment
 module.exports = (deployer, network, accounts) => {

@@ -2,40 +2,49 @@
   <div id="app" :class="$style.app">
     <navbar/>
     <hello-metamask/>
+    <hello-firefox/>
     <router-view :class="$style.content"/>
-    <br>
-    <br>
     <travay-footer />
     <br>
+    <!-- TODO: fix cookie consent -->
+    <!--<vue-cookie-consent-->
+      <!--current-version="1.0.0"-->
+      <!--:cookie-consent-version="cookieConsentVersion"-->
+      <!--:set-cookie-consent-version="setCookieConsentVersion">-->
+      <!--This uses cookies.-->
+    <!--</vue-cookie-consent>-->
   </div>
 </template>
 
 <script>
   import { mapActions, mapMutations, mapGetters } from 'vuex'
+  import {store} from './store';
   import HelloMetamask from '@/components/hello-metamask'
+  import HelloFirefox from '@/components/hello-firefox'
   import Navbar from '@/components/navbar'
   import TravayFooter from '@/components/travay-footer'
   import SignInModal from './services/SignInModal'
   import { doChangeLocale }  from './util/i18n';
-  import {store} from './store';
 
   export default {
   name: 'App',
   beforeCreate () {
-    // console.log('registerWeb3 Action dispatched from app.vue');
     this.$store.dispatch('registerWeb3');
   },
   components: {
     'navbar': Navbar,
     'hello-metamask': HelloMetamask,
+    'hello-firefox': HelloFirefox,
     'travay-footer': TravayFooter,
     'signInModal': SignInModal
   },
   computed: {
-    ...mapGetters('signInModal', ['userId'])
+    ...mapGetters('signInModal', ['userId']),
+    ...mapGetters('app', ['cookieConsentVersion']),
   },
   methods: {
     ...mapActions('signInModal', ['openLoginModal', 'saveUserInStorage']),
+    ...mapActions('app', ['setCookieConsentVersion']),
     signInClicked() {
       this.navBarClose();
       this.openLoginModal();

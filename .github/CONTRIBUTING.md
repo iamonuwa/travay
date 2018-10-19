@@ -46,7 +46,7 @@ Before you submit an issue, please search the issue tracker, maybe an issue for 
 We want to fix all the issues as soon as possible, but before fixing a bug we need to reproduce and confirm it. Having a reproducible
 scenario gives us wealth of important information without going back & forth to you with additional questions.
 
-You can file new issues by filling out our [new issue form](https://github.com/devCrossNet/vue-starter/issues/new).
+You can file new issues by filling out our [new issue form](https://github.com/electricfeelco/issues/new).
 
 
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
@@ -78,7 +78,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
     git push origin my-fix-branch
     ```
 
-* In GitHub, send a pull request to `travay:next`.
+* In GitHub, send a pull request.
 * If we suggest changes then:
   * Make the required updates.
   * Re-run the test suites to ensure tests are still passing.
@@ -119,11 +119,6 @@ from the main (upstream) repository:
     ```shell
     git pull --ff upstream next
     ```
-
-## <a name="rules"></a> Coding Rules
-To ensure consistency throughout the source code, keep these rules in mind as you are working:
-
-* All features or bug fixes **must be tested** by one or more specs (unit-tests or e2e-tests).
 
 ## <a name="commit"></a> Commit Message Guidelines
 
@@ -183,6 +178,5 @@ The body should include the motivation for the change and contrast this with pre
 ### Footer
 The footer should contain any information about **Breaking Changes** and is also the place to
 reference GitHub issues that this commit **Closes**.
-
 
 [GitHub]: https://github.com/electricfeelco/travay/issues

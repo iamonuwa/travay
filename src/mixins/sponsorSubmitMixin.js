@@ -1,5 +1,5 @@
 import { uuid } from 'vue-uuid';
-import db from '../firebaseinit-dev';
+import db from '../firebaseinit';
 import * as types from '@/store/types';
 
 export const sponsorSubmitMixin = {

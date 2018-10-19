@@ -6,13 +6,9 @@ import Job from '@/components/job'
 import CreateJob from '@/components/createJob'
 import Profile from '@/components/profile'
 import GetStarted from '@/components/get-started'
-import UserGuide from '@/components/userGuide'
-import Privacy from '@/components/privacy'
-import CodeOfConduct from '@/components/code-of-conduct'
-import SetUpMetaMask from '@/components/set-up-metamask'
 import Tip from '@/components/tip'
 import GetFunds from '@/components/get-funds'
-import Dictionary from '@/components/dictionary'
+import Pricing from '@/components/pricing'
 
 Vue.use(Router);
 
@@ -50,26 +46,6 @@ export default new Router({
       component: GetStarted
     },
     {
-      path: '/userGuide',
-      name: 'user-guide',
-      component: UserGuide
-    },
-    {
-      path: '/privacy',
-      name: 'privacy',
-      component: Privacy
-    },
-    {
-      path: '/code-of-conduct',
-      name: 'code-of-conduct',
-      component: CodeOfConduct
-    },
-    {
-      path: '/set-up-metamask',
-      name: 'set-up-metamask',
-      component: SetUpMetaMask
-    },
-    {
       path: '/tip',
       name: 'tip',
       component: Tip
@@ -80,9 +56,9 @@ export default new Router({
       component: GetFunds
     },
     {
-      path: '/dictionary',
-      name: 'dictionary',
-      component: Dictionary
+      path: '/pricing',
+      name: 'pricing',
+      component: Pricing
     }
   ]
 })

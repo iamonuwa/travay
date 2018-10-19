@@ -1,7 +1,5 @@
 # Escrow Smart Contract
 
-Main Network Contract: https://etherscan.io/address/0xfa1909f6fe2120e3aa4a63883776250ba5042b60#code
-
 ## Build Contracts
 ```
 cd contracts

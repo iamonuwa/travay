@@ -1,8 +1,8 @@
 <template>
   <div class="loading-parent">
       <loading
-          :active.sync="isLoading" 
-          :can-cancel="false" 
+          :active.sync="isLoading"
+          :can-cancel="false"
           :is-full-page="fullPage">
       </loading>
       <vue-grid>
@@ -11,8 +11,7 @@
           <vue-grid-item>
             <h1>{{ $t('App.tip.tipPageTitle' /* Tip Anyone! */) }}</h1>
             <p>{{ $t('App.tip.tipPageDescription' /* Send cryptocurrency (DAI) to anyone. For a job well done, for a
-              service, for rent, food and more. */) }}</p>
-
+              service, for rent, food and more. Remember that $1 DAI is equal to $1 USD. */) }}</p>
             <br>
 
             <form @submit.prevent="makeTipEscrow()">
@@ -21,7 +20,7 @@
                 name="receiver"
                 id="receiver"
                 required
-                placeholder="Receiver"
+                :placeholder="$t('App.tip.receiverPlaceholderText') /* Receiver */"
                 validation="required"
                 v-model="form.receiver"/>
               <p><em>{{ $t('App.tip.receiverDescription' /* Paste in the ethereum address of the person who should receive
@@ -33,16 +32,15 @@
                 name="amount"
                 id="amount"
                 required
-                placeholder="Amount in USD"
+                :placeholder="$t('App.tip.AmountPlaceholderText') /* Amount in USD */"
                 validation="required"
                 v-model="form.amount"/>
               <p><em>{{ $t('App.tip.amountDescription' /* Enter how much you would like to send in USD. */) }}</em></p>
 
               <br>
 
-              <vue-button warn
-                          :loading="isLoading"
-                          @click="makeTipEscrow()">
+              <vue-button primary style="color: white;"
+                          :loading="isLoading">
                 {{ $t('App.tip.sendTipButton' /* Send Tip */) }}
               </vue-button>
 
@@ -57,12 +55,14 @@
 
 <script>
   import {NETWORKS} from "../util/constants/networks";
-  import {mapState} from "vuex";
+  import {mapActions, mapGetters, mapMutations, mapState} from 'vuex';
   import {store} from '../store/'
+  import * as types from '../store/types'
   import truffleContract from "truffle-contract";
   import EscrowContract from "../../contracts/build/contracts/Escrow.json";
   import DAIContract from "../../contracts/build/contracts/DAI.json";
   import Loading from 'vue-loading-overlay';
+  import BigNumber from 'bignumber.js'
 
   export default {
     name: "tip",
@@ -80,13 +80,18 @@
       };
     },
     methods: {
+      ...mapActions({
+        openNetworkModal: types.OPEN_NETWORK_MODAL
+      }),
       async makeTipEscrow() {
 
-        // TODO: Uncomment this out when moving to production !!!!
-        // if (this.$store.state.web3.networkId !== "1") {
-        //   this.openNetworkModal();
-        //   return;
-        // }
+        if (this.$store.state.web3.networkId !== "1") {
+          this.openNetworkModal();
+          return;
+        }
+
+        // Add Analytics event
+        this.$ma.trackEvent({category: 'Click', action: 'Make Tip Escrow', label: 'Make Tip Escrow', value: ''});
 
         const self = this;
         self.isLoading = true;
@@ -116,37 +121,51 @@
             const receiver = this.form.receiver;
             const sender = accounts[0];
 
-            try {
-              let receiver_balance_before = await DAIInstance.balanceOf(receiver);
-              receiver_balance_before = receiver_balance_before.toNumber();
+            console.log('tip amount', payment);
+            web3.eth.getGasPrice(async(err, gasPrice) => {
+              gasPrice = gasPrice.toNumber();
+              console.log("Gas Price ", gasPrice)
+              try {
+                let receiver_balance_before = await DAIInstance.balanceOf(receiver);
+                receiver_balance_before = receiver_balance_before.toNumber();
 
-              await DAIInstance.approve(EscrowInstance.address, payment, {
-                from: sender
-              });
+                const approveGas = await DAIInstance.approve.estimateGas(receiver, payment, {
+                  from: sender
+                });
 
-              const result = await EscrowInstance.tip(receiver, payment, {
-                from: sender
-              });
+                console.log("Gas calcuated for Approve ",approveGas);
 
-              let receiver_balance_after = await DAIInstance.balanceOf(receiver);
-              receiver_balance_after = receiver_balance_after.toNumber();
+                await DAIInstance.approve(EscrowInstance.address, payment, {
+                  from: sender,
+                  gas: approveGas,
+                  gasPrice: gasPrice
+                });
 
-              this.$nextTick(() => {
-                setTimeout(() => {
-                  self.isLoading = false;
+                const result = await EscrowInstance.tip(receiver, payment, {
+                  from: sender
+                });
 
-                  EventBus.$emit('notification.add', {
-                    id: 1,
-                    title: this.$t("App.tip.tipSentTitle" /* Success! */),
-                    text: this.$t("App.tip.tipSentText" /* Your DAI transfer is complete! */)
-                  });
-                }, 800);
-              });
-              self.clearForm();
-            } catch (error) {
-              self.isLoading = false;
-              reject(error);
-            }
+                let receiver_balance_after = await DAIInstance.balanceOf(receiver);
+                receiver_balance_after = receiver_balance_after.toNumber();
+
+                this.$nextTick(() => {
+                  setTimeout(() => {
+                    self.isLoading = false;
+
+                    EventBus.$emit('notification.add', {
+                      id: 1,
+                      title: this.$t("App.tip.tipSentTitle" /* Success! */),
+                      text: this.$t("App.tip.tipSentText" /* Your DAI transfer is complete! */)
+                    });
+                  }, 800);
+                });
+                self.clearForm();
+              } catch (error) {
+                self.isLoading = false;
+                reject(error);
+              }
+            })
+
           })
         })
       },

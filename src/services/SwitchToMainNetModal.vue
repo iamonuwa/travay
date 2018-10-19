@@ -6,7 +6,11 @@
       <h2>{{ $t('App.job.mainNetModalTitle' /* Switch to Main Network */) }}</h2>
 
       <p>{{ $t('App.job.mainNetModalDescription' /* Please go to MetaMask and switch to the "Main Network" to process
-        your transaction. */) }}</p>
+        your transaction. */) }}</p><br>
+
+      <p>{{ $t('App.getStarted.installExtension' /* extension */) }} <a
+        href="https://addons.mozilla.org/en-US/firefox/addon/ether-metamask"
+        target="_blank">MetaMask</a>.</p>
 
     </vue-modal>
   </div>

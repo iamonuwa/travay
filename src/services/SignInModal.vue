@@ -61,7 +61,7 @@
   import {mapActions, mapGetters, mapMutations, mapState} from 'vuex';
   import * as types from '../store/types'
   import firebase from 'firebase';
-  import db from '../firebaseinit-dev';
+  import db from '../firebaseinit';
   import {uuid} from 'vue-uuid';
   import {store} from '../store';
   import truffleContract from "truffle-contract";
@@ -131,6 +131,9 @@
       //   this.$router.push('/jobs');
       // },
       signInWithGoogle: function () {
+
+        // this.$ma.trackEvent({category: 'Click', action: 'Clicked Sign In', label: 'Clicked Sign In', value: ''});
+
         const provider = new firebase.auth.GoogleAuthProvider();
         firebase
           .auth()
@@ -175,11 +178,12 @@
           if (snapshot.docs.length === 0) {
             const user = await db.collection('users').add(data);
             this.saveUserAddress();
-            this.$router.push('/get-started');
+            // this.$router.push('/get-started');
+            this.$router.push('/jobs');
           }
           this.user = data;
           this.saveUserInStorage(data);
-          // this.$router.push('/jobs');
+          this.$router.push('/jobs');
         } catch (error) {
           console.error('error while getting user by uid', error);
         }
