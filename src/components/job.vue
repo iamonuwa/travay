@@ -363,941 +363,1018 @@
 </template>
 
 <script>
-  import {store} from '../store/'
-  import * as types from '../store/types'
-  import {mapActions, mapGetters, mapMutations, mapState} from 'vuex'
-  import {NETWORKS} from '../util/constants/networks'
-  import axios from 'axios'
-  import firebase from 'firebase'
-  import db from '../firebaseinit-dev'
-  import SponsorModal from '../services/SponsorModal.vue'
-  import {uuid} from 'vue-uuid'
-  import moment from 'moment'
-  import {sponsorSubmitMixin} from '../mixins/sponsorSubmitMixin'
-  import truffleContract from 'truffle-contract'
-  import EscrowContract from '../../contracts/build/contracts/Escrow.json'
-  import DAIContract from '../../contracts/build/contracts/DAI.json'
-  import Loading from 'vue-loading-overlay'
+import { store } from "../store/";
+import * as types from "../store/types";
+import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
+import { NETWORKS } from "../util/constants/networks";
+import axios from "axios";
+import firebase from "firebase";
+import db from "../firebaseinit";
+import SponsorModal from "../services/SponsorModal.vue";
+import { uuid } from "vue-uuid";
+import moment from "moment";
+import { sponsorSubmitMixin } from "../mixins/sponsorSubmitMixin";
+import truffleContract from "truffle-contract";
+import EscrowContract from "../../contracts/build/contracts/Escrow.json";
+import DAIContract from "../../contracts/build/contracts/DAI.json";
+import Loading from "vue-loading-overlay";
 
-  const firebaseStorage = firebase.storage()
+const firebaseStorage = firebase.storage();
 
-  export default {
-    mixins: [sponsorSubmitMixin],
-    metaInfo: {
-      title: 'Job',
-      meta: [
-        {
-          name: 'Details of a job',
-          content: 'Details of a job in Travay.'
-        }
-      ]
-    },
-    name: 'job',
-    $_veeValidate: {
-      validator: 'new'
-    },
-    components: {
-      SponsorModal,
-      Loading
-    },
-    data () {
-      return {
-        isLoading: false,
-        fullPage: true,
-        job: {},
-        posted: '',
-        taskId: '',
-        form: {
-          acceptTerms: false,
-          newsletter: false
-        },
-        showSponsoredModal: false,
-        isEditingJobDetails: false,
-        file: '',
-        fileName: '',
-        image: '',
-        imagePreview: '',
-        loadingText: '',
-        sponsoredAmount: 0,
-        images: [],
-        requirement: '',
-        requirements: [],
-        claimed: false,
-        termOfEmployment: 0
+export default {
+  mixins: [sponsorSubmitMixin],
+  metaInfo: {
+    title: "Job",
+    meta: [
+      {
+        name: "Details of a job",
+        content: "Details of a job in Travay."
       }
+    ]
+  },
+  name: "job",
+  $_veeValidate: {
+    validator: "new"
+  },
+  components: {
+    SponsorModal,
+    Loading
+  },
+  data() {
+    return {
+      isLoading: false,
+      fullPage: true,
+      job: {},
+      posted: "",
+      taskId: "",
+      form: {
+        acceptTerms: false,
+        newsletter: false
+      },
+      showSponsoredModal: false,
+      isEditingJobDetails: false,
+      file: "",
+      fileName: "",
+      image: "",
+      imagePreview: "",
+      loadingText: "",
+      sponsoredAmount: 0,
+      images: [],
+      requirement: "",
+      requirements: [],
+      claimed: false,
+      termOfEmployment: 0
+    };
+  },
+  created() {
+    const taskId = this.$route.params.id;
+    db.collection("jobs")
+      .where("taskId", "==", taskId)
+      .get()
+      .then(snapshot => {
+        const jobs = [];
+        const jobsId = [];
+        snapshot.forEach(job => {
+          let jobData = job.data();
+          let jobId = job.id;
+          jobs.push(jobData);
+          jobsId.push(jobId);
+        });
+        this.job = jobs[0];
+        this.job.id = jobsId[0];
+      })
+      .catch(error => {
+        console.error("Error while trying to get the job", error);
+      });
+  },
+  filters: {
+    moment: function(date) {
+      return moment(date).format("Do MMMM YYYY");
+    }
+  },
+  computed: {
+    ...mapGetters({
+      userId: types.GET_USER_ID
+    }),
+    hasErrors() {
+      return this.errors && this.errors.items.length > 0;
     },
-    created () {
-      const taskId = this.$route.params.id
-      db
-        .collection('jobs')
-        .where('taskId', '==', taskId)
-        .get()
-        .then(snapshot => {
-          const jobs = []
-          const jobsId = []
-          snapshot.forEach(job => {
-            let jobData = job.data()
-            let jobId = job.id
-            jobs.push(jobData)
-            jobsId.push(jobId)
-          })
-          this.job = jobs[0]
-          this.job.id = jobsId[0]
+    hasEmptyFields() {
+      let hasEmptyField = false;
+      Object.keys(this.form).forEach(key => {
+        if (
+          key !== "newsletter" &&
+          (this.form[key] === "" || this.form[key] === false)
+        ) {
+          hasEmptyField = true;
+        }
+      });
+      return hasEmptyField;
+    },
+    isSubmitDisabled() {
+      return this.hasErrors || this.hasEmptyFields;
+    }
+  },
+  methods: {
+    //...mapActions("signInModal", ["openLoginModal", "closeLoginModal"]),
+    ...mapActions({
+      openLoginModal: types.OPEN_LOGIN_MODAL,
+      closeLoginModal: types.CLOSE_LOGIN_MODAL,
+      openNetworkModal: types.OPEN_NETWORK_MODAL
+    }),
+    removeImage(i) {
+      this.images = this.images.filter((img, index) => index !== i);
+    },
+    addRequirement() {
+      if (this.requirement) {
+        if (Reflect.has(this.job, "deliverable")) {
+          this.job.deliverable.push(this.requirement);
+        } else {
+          this.job.deliverable = [this.requirement];
+        }
+      }
+      this.requirement = "";
+    },
+    removeRequirement(index) {
+      this.job.deliverable.splice(index, 1);
+    },
+    cancelJob() {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
+      }
+
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Canceled Job",
+        label: "Cancel Job",
+        value: ""
+      });
+
+      this.isLoading = true;
+
+      const jobId = this.job.taskId;
+
+      this.cancelJobInEscrow()
+        .then(JobID => {
+          console.log("job is being canceled");
+          const job = db.collection("jobs").doc(jobId);
+          const update = job.update({
+            status: {
+              state: "cancelled",
+              dateCanceled: new Date()
+            }
+          });
+          // this.job.status.state = "cancelled";
+          this.isEditingJobDetails = false;
+
+          EventBus.$emit("notification.add", {
+            id: 1,
+            title: this.$t(
+              "App.job.jobCanceledNotificationTitle" /* Success! */
+            ),
+            text: this.$t(
+              "App.job.jobCanceledNotificationText" /* This job has been cancelled. */
+            )
+          });
+          this.isLoading = false;
         })
         .catch(error => {
-          console.error('Error while trying to get the job', error)
-        })
+          console.log(error);
+        });
     },
-    filters: {
-      moment: function (date) {
-        return moment(date).format('Do MMMM YYYY')
+    setEvaluator() {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
       }
+
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Set Evaluator",
+        label: "Set Evaluator",
+        value: ""
+      });
+
+      this.isLoading = true;
+
+      // TODO evaluator's ID is not being stored in Firebase
+      this.setEvaluatorInEscrow().then(JobID => {
+        try {
+          db.collection("jobs")
+            .doc(docId)
+            .update({
+              "role.1": this.userId
+            });
+          const result = db
+            .collection("users")
+            .where("uid", "==", this.userId)
+            .get()
+            .then(snapshots => {
+              const doc = snapshots.docs[0];
+              const userData = doc.data();
+              const obj = { doc, user: userData, evaluatingJobs: [] };
+              if (Reflect.has(userData, "evaluatingJobs")) {
+                obj.evaluatingJobs = userData.evaluatingJobs;
+              }
+              return obj;
+            })
+            .then(({ doc, user, evaluatingJobs }) => {
+              doc.ref.update({
+                evaluatingJobs: [...evaluatingJobs, this.job.taskId]
+              });
+            });
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.isLoading = false;
+
+              EventBus.$emit("notification.add", {
+                id: 1,
+                title: this.$t(
+                  "App.job.jobEvaluatorNotificationTitle" /* Thank you! */
+                ),
+                text: this.$t(
+                  "App.job.jobEvaluatorNotificationText"
+                  /* You are now the evaluator for this job. */
+                )
+              });
+            }, 700);
+          });
+        } catch (error) {
+          this.isLoading = false;
+          console.log("error when adding job in firebase", error);
+        }
+      });
     },
-    computed: {
-      ...mapGetters({
-        userId: types.GET_USER_ID
-      }),
-      hasErrors () {
-        return this.errors && this.errors.items.length > 0
-      },
-      hasEmptyFields () {
-        let hasEmptyField = false
-        Object.keys(this.form).forEach((key) => {
-          if (
-            key !== 'newsletter' &&
-            (this.form[key] === '' || this.form[key] === false)
-          ) {
-            hasEmptyField = true
-          }
-        })
-        return hasEmptyField
-      },
-      isSubmitDisabled () {
-        return this.hasErrors || this.hasEmptyFields
+    markJobComplete() {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
       }
-    },
-    methods: {
-      //...mapActions("signInModal", ["openLoginModal", "closeLoginModal"]),
-      ...mapActions({
-        openLoginModal: types.OPEN_LOGIN_MODAL,
-        closeLoginModal: types.CLOSE_LOGIN_MODAL,
-        openNetworkModal: types.OPEN_NETWORK_MODAL
-      }),
-      removeImage (i) {
-        this.images = this.images.filter((img, index) => index !== i)
-      },
-      addRequirement () {
-        if (this.requirement) {
-          if (Reflect.has(this.job, 'deliverable')) {
-            this.job.deliverable.push(this.requirement)
-          } else {
-            this.job.deliverable = [this.requirement]
-          }
-        }
-        this.requirement = ''
-      },
-      removeRequirement (index) {
-        this.job.deliverable.splice(index, 1)
-      },
-      cancelJob () {
 
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Mark Job Complete",
+        label: "Mark Job Complete",
+        value: ""
+      });
 
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Canceled Job', label: 'Cancel Job', value: ''})
+      const jobId = this.job.taskId;
 
-        this.isLoading = true
+      this.isLoading = true;
 
-        const jobId = this.job.taskId
+      this.proofOfWorkToEscrow()
+        .then(JobID => {
+          const job = db.collection("jobs").doc(jobId);
+          const update = job.update({
+            // TODO solve undefined error
+            // workerMilestonesCompleted: [...workerMilestoneCompleted, new Date()]
+          });
 
-        this.cancelJobInEscrow()
-          .then(JobID => {
-            console.log('job is being canceled')
-            const job = db.collection('jobs').doc(jobId)
-            const update = job.update({
-              status: {
-                state: 'cancelled',
-                dateCanceled: new Date()
-              }
-            })
-            // this.job.status.state = "cancelled";
-            this.isEditingJobDetails = false
+          this.job.status.state = "complete";
+          this.isLoading = false;
 
-            EventBus.$emit('notification.add', {
-              id: 1,
-              title: this.$t('App.job.jobCanceledNotificationTitle' /* Success! */),
-              text: this.$t('App.job.jobCanceledNotificationText' /* This job has been cancelled. */)
-            })
-            this.isLoading = false
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      },
-      setEvaluator () {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Set Evaluator', label: 'Set Evaluator', value: ''})
-
-        this.isLoading = true
-
-        // TODO evaluator's ID is not being stored in Firebase
-        this.setEvaluatorInEscrow()
-          .then(JobID => {
-            try {
-              db
-                .collection('jobs')
-                .doc(docId)
-                .update({
-                  'role.1': this.userId
-                })
-              const result = db
-                .collection('users')
-                .where('uid', '==', this.userId)
-                .get()
-                .then(snapshots => {
-                  const doc = snapshots.docs[0]
-                  const userData = doc.data()
-                  const obj = {doc, user: userData, evaluatingJobs: []}
-                  if (Reflect.has(userData, 'evaluatingJobs')) {
-                    obj.evaluatingJobs = userData.evaluatingJobs
-                  }
-                  return obj
-                })
-                .then(({doc, user, evaluatingJobs}) => {
-                  doc.ref.update({
-                    evaluatingJobs: [...evaluatingJobs, this.job.taskId]
-                  })
-                })
-              this.$nextTick(() => {
-                setTimeout(() => {
-                  this.isLoading = false
-
-                  EventBus.$emit('notification.add', {
-                    id: 1,
-                    title: this.$t('App.job.jobEvaluatorNotificationTitle' /* Thank you! */),
-                    text: this.$t('App.job.jobEvaluatorNotificationText'
-                      /* You are now the evaluator for this job. */)
-                  })
-                }, 700)
-              })
-            } catch (error) {
-              this.isLoading = false
-              console.log('error when adding job in firebase', error)
-            }
-          })
-      },
-      markJobComplete () {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Mark Job Complete', label: 'Mark Job Complete', value: ''})
-
-        const jobId = this.job.taskId
-
-        this.isLoading = true
-
-        this.proofOfWorkToEscrow()
-          .then(JobID => {
-            const job = db.collection('jobs').doc(jobId)
-            const update = job.update({
-              // TODO resolve undefined error
-              // workerMilestonesCompleted: [...workerMilestoneCompleted, new Date()]
-            })
-
-            this.job.status.state = 'complete'
-            this.isLoading = false
-
-            EventBus.$emit('notification.add', {
-              id: 1,
-              title: this.$t('App.job.jobCompletedNotificationTitle' /* Success! */),
-              text: this.$t('App.job.jobCompleteNotificationText' /* This job has been marked completed. Your Job Manager will review the work and send payment after confirming. */)
-            })
-          })
-          .catch(error => {
-            this.isLoading = false
-            console.log(error)
-          })
-      },
-      evaluateJobAsCompletedSucessfully () {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({
-          category: 'Click',
-          action: 'Evaluate Job As Completed Successfully',
-          label: 'Evaluate Job As Completed Successfully',
-          value: ''
-        })
-
-        this.isLoading = true
-
-        const jobId = this.job.taskId
-
-        this.evaluateJobToEscrow()
-          .then(JobID => {
-
-            const job = db.collection('jobs').doc(jobId)
-
-            const update = job.update({
-              status: {
-                milestoneCompletedSuccessfully: new Date(),
-                state: 'incomplete'
-              }
-            })
-            EventBus.$emit('notification.add', {
-              id: 1,
-              title: this.$t('App.job.jobCompletedNotificationTitle' /* Success! */),
-              text: this.$t('App.job.jobCompleteNotificationText' /* This job has been marked completed. Your Job Manager will review the work and send payment after confirming. */)
-            })
-            this.isLoading = false
-          })
-          .catch(error => {
-            this.isLoading = false
-            console.log(error)
-          })
-      },
-      async evaluateJobAsCompletedUnsucessfully () {
-        // const jobId = this.job.taskId;
-
-        // Analytics
-        this.$ma.trackEvent({
-          category: 'Click',
-          action: 'Evaluate Job As Completed Unsuccessfully',
-          label: 'Evaluate Job As Completed Unsuccessfully',
-          value: ''
-        })
-
-        //  this.isLoading = true;
-        //
-        // try {
-        //   const job = await db.collection("jobs").doc(jobId);
-        //   const update = await job.update({
-        //     status: {
-        //       successfullyCompleted: "false"
-        //     }
-        //   });
-        //   this.isEditingJobDetails = false;
-        //
-        //   // TODO update toaster and determine how to handle this
-        //   EventBus.$emit('notification.add', {
-        //     id: 1,
-        //     title: this.$t("App.job.jobUnCompletedNotificationTitle" /* Update Complete */),
-        //     text: this.$t("App.job.jobUnCompleteNotificationText"
-        //       /* This job has been marked as not completed successfully.. */)
-        //   });
-        //   this.isLoading = false;
-        // } catch (error) {
-        //   console.log(error)
-        // }
-      },
-      claimPayout () {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Claim Payout', label: 'Claim Payout', value: ''})
-
-        this.isLoading = true
-
-        this.workerClaimPayoutInEscrow()
-          .then(JobID => {
-            // TODO updating payouts array in Firebase not working
-            try {
-              db
-                .collection('jobs')
-                .doc(docId)
-                .update({
-                  'payouts': new Date()
-                })
-              const result = db
-                .collection('users')
-                .where('uid', '==', this.userId)
-                .get()
-                .then(snapshots => {
-                  const doc = snapshots.docs[0]
-                  const userData = doc.data()
-                  const obj = {doc, user: userData, claimedPayouts: []}
-                  if (Reflect.has(userData, 'claimedPayouts')) {
-                    obj.claimedPayouts = userData.claimedPayouts
-                  }
-                  return obj
-                })
-                .then(({doc, user, claimedPayouts}) => {
-                  doc.ref.update({
-                    claimedPayouts: [...claimedPayouts, new Date()]
-                  })
-                })
-              this.$nextTick(() => {
-                setTimeout(() => {
-                  this.isLoading = false
-
-                  EventBus.$emit('notification.add', {
-                    id: 1,
-                    title: this.$t('App.job.workerClaimedPayoutNotificationTitle' /* Success! */),
-                    text: this.$t('App.job.workerClaimedPayoutNotificationText'
-                      /* You will see your salary in your MetaMask account soon. */)
-                  })
-                }, 700)
-              })
-            } catch (error) {
-              this.isLoading = false
-              console.log('error when adding job in firebase', error)
-            }
-          })
-      },
-      sponsorJob (taskId) {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({
-          category: 'Click',
-          action: 'Sponsor Job from Job Page',
-          label: 'Sponsor Job from Job Page',
-          value: ''
-        })
-
-        if (!this.userId) {
-          this.openLoginModal()
-          return
-        }
-        this.selectedJobToSponsorId = taskId
-        this.showSponsoredModal = true
-      },
-      getJob () {
-        axios.get('/jobs.json').then((response) => {
-          const job = response.data.jobs.filter(
-            (job) => job.taskId === this.$route.params.taskId
-          )
-          if (job.length > 0) {
-            this.job = job[0]
-          }
-        })
-      },
-      claimJob (docId) {
-
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
-        }
-
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Claim Job Click', label: 'Claim Job', value: ''})
-
-        this.isLoading = true
-
-        // TODO: fix the checkbox field for approving the terms when claiming a job
-        if (this.hasEmptyFields) {
-          EventBus.$emit('notification.add', {
+          EventBus.$emit("notification.add", {
             id: 1,
-            title: this.$t('App.job.jobEmptyFieldNotificationTitle' /* Oops */),
-            text: this.$t('App.job.jobEmptyFieldNotificationText' /* Please complete all fields. */)
-          })
+            title: this.$t(
+              "App.job.jobCompletedNotificationTitle" /* Success! */
+            ),
+            text: this.$t(
+              "App.job.jobCompleteNotificationText" /* This job has been marked completed. Your Job Manager will review the work and send payment after confirming. */
+            )
+          });
+        })
+        .catch(error => {
+          this.isLoading = false;
+          console.log(error);
+        });
+    },
+    evaluateJobAsCompletedSucessfully() {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
+      }
 
-          return false
-        }
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Evaluate Job As Completed Successfully",
+        label: "Evaluate Job As Completed Successfully",
+        value: ""
+      });
 
-        this.claimJobInEscrowContract()
-          .then(response => {
-            try {
-              db
-                .collection('jobs')
-                .doc(docId)
-                .update({
-                  'role.2': this.userId
-                })
-              const result = db
-                .collection('users')
-                .where('uid', '==', this.userId)
-                .get()
-                .then(snapshots => {
-                  const doc = snapshots.docs[0]
-                  const userData = doc.data()
-                  const obj = {doc, user: userData, claimedJobs: []}
-                  if (Reflect.has(userData, 'claimedJobs')) {
-                    obj.claimedJobs = userData.claimedJobs
-                  }
-                  return obj
-                })
-                .then(({doc, user, claimedJobs}) => {
-                  doc.ref.update({
-                    claimedJobs: [...claimedJobs, this.job.taskId]
-                  })
-                })
-              this.$nextTick(() => {
-                setTimeout(() => {
-                  this.isLoading = false
+      this.isLoading = true;
 
-                  EventBus.$emit('notification.add', {
-                    id: 1,
-                    title: this.$t('App.job.jobClaimedNotificationTitle' /* Yay! */),
-                    text: this.$t('App.job.jobClaimedNotificationText' /* Job confirmed successfully! You can start work immediately. */)
-                  })
-                }, 700)
-              })
-            } catch (error) {
-              this.isLoading = false
-              console.log('error when adding job in firebase', error)
+      const jobId = this.job.taskId;
+
+      this.evaluateJobToEscrow()
+        .then(JobID => {
+          const job = db.collection("jobs").doc(jobId);
+
+          const update = job.update({
+            status: {
+              milestoneCompletedSuccessfully: new Date(),
+              state: "incomplete"
             }
-          })
-          .catch(error => {
-            this.isLoading = false
-            console.log('bad', error)
-          })
-      },
-      payoutJob (docId) {
+          });
+          EventBus.$emit("notification.add", {
+            id: 1,
+            title: this.$t(
+              "App.job.jobCompletedNotificationTitle" /* Success! */
+            ),
+            text: this.$t(
+              "App.job.jobCompleteNotificationText" /* This job has been marked completed. Your Job Manager will review the work and send payment after confirming. */
+            )
+          });
+          this.isLoading = false;
+        })
+        .catch(error => {
+          this.isLoading = false;
+          console.log(error);
+        });
+    },
+    async evaluateJobAsCompletedUnsucessfully() {
+      // const jobId = this.job.taskId;
 
-        if (this.$store.state.web3.networkId !== '3') {
-          this.openNetworkModal()
-          return
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Evaluate Job As Completed Unsuccessfully",
+        label: "Evaluate Job As Completed Unsuccessfully",
+        value: ""
+      });
+
+      //  this.isLoading = true;
+      //
+      // try {
+      //   const job = await db.collection("jobs").doc(jobId);
+      //   const update = await job.update({
+      //     status: {
+      //       successfullyCompleted: "false"
+      //     }
+      //   });
+      //   this.isEditingJobDetails = false;
+      //
+      //   // TODO update toaster and determine how to handle this
+      //   EventBus.$emit('notification.add', {
+      //     id: 1,
+      //     title: this.$t("App.job.jobUnCompletedNotificationTitle" /* Update Complete */),
+      //     text: this.$t("App.job.jobUnCompleteNotificationText"
+      //       /* This job has been marked as not completed successfully.. */)
+      //   });
+      //   this.isLoading = false;
+      // } catch (error) {
+      //   console.log(error)
+      // }
+    },
+    claimPayout() {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
+      }
+
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Claim Payout",
+        label: "Claim Payout",
+        value: ""
+      });
+
+      this.isLoading = true;
+
+      this.workerClaimPayoutInEscrow().then(JobID => {
+        // TODO updating payouts array in Firebase not working
+        try {
+          db.collection("jobs")
+            .doc(docId)
+            .update({
+              payouts: new Date()
+            });
+          const result = db
+            .collection("users")
+            .where("uid", "==", this.userId)
+            .get()
+            .then(snapshots => {
+              const doc = snapshots.docs[0];
+              const userData = doc.data();
+              const obj = { doc, user: userData, claimedPayouts: [] };
+              if (Reflect.has(userData, "claimedPayouts")) {
+                obj.claimedPayouts = userData.claimedPayouts;
+              }
+              return obj;
+            })
+            .then(({ doc, user, claimedPayouts }) => {
+              doc.ref.update({
+                claimedPayouts: [...claimedPayouts, new Date()]
+              });
+            });
+          this.$nextTick(() => {
+            setTimeout(() => {
+              this.isLoading = false;
+
+              EventBus.$emit("notification.add", {
+                id: 1,
+                title: this.$t(
+                  "App.job.workerClaimedPayoutNotificationTitle" /* Success! */
+                ),
+                text: this.$t(
+                  "App.job.workerClaimedPayoutNotificationText"
+                  /* You will see your salary in your MetaMask account soon. */
+                )
+              });
+            }, 700);
+          });
+        } catch (error) {
+          this.isLoading = false;
+          console.log("error when adding job in firebase", error);
         }
+      });
+    },
+    sponsorJob(taskId) {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
+      }
 
-        // Analytics
-        this.$ma.trackEvent({category: 'Click', action: 'Payout Job', label: 'Payout Job', value: ''})
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Sponsor Job from Job Page",
+        label: "Sponsor Job from Job Page",
+        value: ""
+      });
 
-        const taskId = this.$route.params.id
+      if (!this.userId) {
+        this.openLoginModal();
+        return;
+      }
+      this.selectedJobToSponsorId = taskId;
+      this.showSponsoredModal = true;
+    },
+    getJob() {
+      axios.get("/jobs.json").then(response => {
+        const job = response.data.jobs.filter(
+          job => job.taskId === this.$route.params.taskId
+        );
+        if (job.length > 0) {
+          this.job = job[0];
+        }
+      });
+    },
+    claimJob(docId) {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
+      }
 
-        this.isLoading = true
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Claim Job Click",
+        label: "Claim Job",
+        value: ""
+      });
 
-        this.managerApprovesPaymentInEscrow()
-          .then(JobID => {
-            db
-              .collection('jobs')
+      this.isLoading = true;
+
+      // TODO: fix the checkbox field for approving the terms when claiming a job
+      if (this.hasEmptyFields) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.job.jobEmptyFieldNotificationTitle" /* Oops */),
+          text: this.$t(
+            "App.job.jobEmptyFieldNotificationText" /* Please complete all fields. */
+          )
+        });
+
+        return false;
+      }
+
+      this.claimJobInEscrowContract()
+        .then(response => {
+          try {
+            db.collection("jobs")
               .doc(docId)
+              .update({
+                "role.2": this.userId
+              });
+            const result = db
+              .collection("users")
+              .where("uid", "==", this.userId)
               .get()
               .then(snapshots => {
-                const doc = snapshots
-                const jobData = doc.data()
-                const obj = {doc, user: jobData, payOutsToWorker: []}
-                if (Reflect.has(jobData, 'payOutsToWorker')) {
-                  obj.payOutsToWorker = jobData.payOutsToWorker
+                const doc = snapshots.docs[0];
+                const userData = doc.data();
+                const obj = { doc, user: userData, claimedJobs: [] };
+                if (Reflect.has(userData, "claimedJobs")) {
+                  obj.claimedJobs = userData.claimedJobs;
                 }
                 return obj
               })
-              .then(({doc, payOutsToWorker}) => {
+              .then(({ doc, user, claimedJobs }) => {
                 doc.ref.update({
-                  payOutsToWorker: [...payOutsToWorker, new Date()]
-                })
-              })
-              .catch(error => console.log(error))
+                  claimedJobs: [...claimedJobs, this.job.taskId]
+                });
+              });
             this.$nextTick(() => {
-              EventBus.$emit('notification.add', {
-                id: 1,
-                title: this.$t('App.job.jobPayoutNotificationTitle' /* Your worker thanks you! */),
-                text: this.$t('App.job.jobPayoutNotificationTitleText' /* Payout Complete. Your account is being debited. */)
-              })
-              this.isLoading = false
-            })
-          })
-      },
-      async postEditedJob () {
+              setTimeout(() => {
+                this.isLoading = false;
 
-        this.isLoading = true
-
-        const jobData = {
-          description: this.job.brief,
-          deliverable: this.job.deliverable,
-        }
-        const jobRef = await db
-          .collection('jobs')
-          .doc(this.job.taskId)
-          .get()
-        jobRef.ref
-          .update({
-            ...jobData
-          })
-          .then(function () {
-            console.log('Record successfully updated!')
-          })
-          .catch(function (error) {
-            console.error('Error updating record: ', error)
-          })
-
-        this.$nextTick(() => {
-          setTimeout(() => {
-            this.isLoading = false
-
-            EventBus.$emit('notification.add', {
-              id: 1,
-              title: this.$t('App.job.jobUpdatedNotificationTitle' /* Success! */),
-              text: this.$t('App.job.jobUpdatedNotificationText' /* Job updated successfully! */)
-            })
-          }, 700)
+                EventBus.$emit("notification.add", {
+                  id: 1,
+                  title: this.$t(
+                    "App.job.jobClaimedNotificationTitle" /* Yay! */
+                  ),
+                  text: this.$t(
+                    "App.job.jobClaimedNotificationText" /* Job confirmed successfully! You can start work immediately. */
+                  )
+                });
+              }, 700);
+            });
+          } catch (error) {
+            this.isLoading = false;
+            console.log("error when adding job in firebase", error);
+          }
         })
-        this.isEditingJobDetails = false
-      },
-      uploadProofOfWork () {
-
-        // Analytics
-        this.$ma.trackEvent({
-          category: 'Click',
-          action: 'Upload Proof of Work',
-          label: 'Upload Proof of Work',
-          value: ''
-        })
-
-        this.isLoading = true
-        this.uploadImages().then(res => {
-          console.log('Im done running both funcs')
-        })
-      },
-      async uploadImages () {
-        const self = this
-        const results = this.images.map(async (file) => {
-          const imageUrl = await this.uploadFile(file, self.job.taskId)
-          return {name: file.name, url: imageUrl}
-        })
-
-        Promise.all(results).then(async imageUrls => {
-          if (!Reflect.has(this.job, 'images')) this.job.images = []
-          const images = [...this.job.images, ...imageUrls]
-          const result = await db
-            .collection('jobs')
-            .doc(this.job.taskId)
-            .set({images}, {merge: true})
-            .then(docRef => {
-              console.log('updated!', docRef)
-            })
-        })
-      },
-      uploadFile (file, jobId) {
-        this.isLoading = true
-        return new Promise((resolve, reject) => {
-          const self = this
-          const storageRef = firebaseStorage
-            .ref()
-            .child('jobs/' + jobId + '/' + file.name + '-' + uuid.v1())
-          let uploadTask = storageRef.put(file)
-          uploadTask.on(
-            'state_changed',
-            function (snapshot) {
-              const progress =
-                snapshot.bytesTransferred / snapshot.totalBytes * 100
-              // TODO fix on screen loading percentage of image upload
-              // self.loadingText =
-              //   this.$t('App.job.uploadedPhotoProgress' /* Upload is */) +
-              //   progress +
-              //   this.$t(
-              //     'App.job.uploadedPhotoProgress2' /* % done. Processing post. */);
-              // this.upload.progress = (uploadTask.snapshot.bytesTransferred / uploadTask.snapshot.totalBytes) * 100;
-              // console.log(this.upload.progress);
-            },
-            function (error) {
-              reject(error)
-            },
-            async function () {
-              const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL()
-              resolve(downloadUrl)
-            }
-          )
-          this.isLoading = false
-        })
-      },
-      async fileUploaded (event) {
-        const image = event.target.files[0]
-        this.images.push(image)
-      },
-      async claimJobInEscrowContract () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          const JobID = this.job.taskId
-
-          web3.eth.getAccounts(async (error, accounts) => {
-
-            const worker = accounts[0] // account that is logged into MetaMask
-
-            if (error) {
-              throw new {name: 'Exception', message: 'Accounts are not found'};
-            }
-
-            try {
-              const result = await EscrowInstance.claimJob(JobID, {from: worker})
-              console.log(result)
-              resolve(result)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async cancelJobInEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          const JobID = this.job.taskId
-
-          web3.eth.getAccounts(async (error, accounts) => {
-
-            const manager = accounts[0]
-
-            try {
-              console.log('JobID', JobID)
-              console.log(typeof JobID)
-
-              const result = await EscrowInstance.cancelJob(JobID, {from: manager})
-              resolve(result.logs[0].args.JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async setEvaluatorInEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          const JobID = this.job.taskId
-
-          web3.eth.getAccounts(async (error, accounts) => {
-
-            const evaluator = accounts[0] // account that is logged into MetaMask
-
-            if (error) {
-              throw new {name: 'Exception', message: 'Accounts are not found'}
-            }
-
-            try {
-              await EscrowInstance.setEvaluator(JobID, {from: evaluator})
-              resolve(JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async proofOfWorkToEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          web3.eth.getAccounts(async (err, accounts) => {
-
-            const worker = accounts[0]
-            const JobID = this.job.taskId
-
-            try {
-              const result = await EscrowInstance.provideProofOfWork(JobID, {
-                from: worker
-              })
-              resolve(JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async evaluateJobToEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          web3.eth.getAccounts(async (err, accounts) => {
-
-            const JobID = this.job.taskId
-            const evaluator = accounts[0] // Person logged into MetaMask
-
-            try {
-              console.log('JobID', JobID)
-              console.log(typeof JobID)
-
-              const result = await EscrowInstance.confirmProofOfWork(JobID, {
-                from: evaluator
-              })
-              resolve(JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async managerApprovesPaymentInEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          const JobID = this.job.taskId
-
-          web3.eth.getAccounts(async (err, accounts) => {
-
-            const manager = accounts[0]
-
-            try {
-              const result = await EscrowInstance.approvePayment(JobID, {
-                from: manager
-              })
-              resolve(JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
-      },
-      async workerClaimPayoutInEscrow () {
-
-        return new Promise(async (resolve, reject) => {
-
-          const Escrow = truffleContract(EscrowContract)
-          const DAI = truffleContract(DAIContract)
-
-          window.Escrow = Escrow
-          Escrow.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          Escrow.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-
-          const EscrowInstance = await Escrow.deployed()
-          const DAIInstance = await DAI.deployed()
-
-          window.EscrowInstance = EscrowInstance
-          const pool = EscrowInstance.address
-
-          DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider)
-          DAI.defaults({from: this.$store.state.web3.web3Instance().eth.coinbase})
-
-          web3.eth.getAccounts(async (error, accounts) => {
-
-            const worker = accounts[0]
-            const JobID = this.job.taskId
-
-            console.log(JobID)
-
-            try {
-
-              const Job = await EscrowInstance.getJob(JobID)
-
-              const result = await EscrowInstance.claimPayment(JobID, {from: worker})
-
-              resolve(JobID)
-            } catch (error) {
-              reject(error)
-            }
-          })
-        })
+        .catch(error => {
+          this.isLoading = false;
+          console.log("bad", error);
+        });
+    },
+    payoutJob(docId) {
+      if (this.$store.state.web3.networkId !== "1") {
+        this.openNetworkModal();
+        return;
       }
+
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Payout Job",
+        label: "Payout Job",
+        value: ""
+      });
+
+      const taskId = this.$route.params.id;
+
+      this.isLoading = true;
+
+      this.managerApprovesPaymentInEscrow().then(JobID => {
+        db.collection("jobs")
+          .doc(docId)
+          .get()
+          .then(snapshots => {
+            const doc = snapshots;
+            const jobData = doc.data();
+            const obj = { doc, user: jobData, payOutsToWorker: [] };
+            if (Reflect.has(jobData, "payOutsToWorker")) {
+              obj.payOutsToWorker = jobData.payOutsToWorker;
+            }
+            return obj;
+          })
+          .then(({ doc, payOutsToWorker }) => {
+            doc.ref.update({
+              payOutsToWorker: [...payOutsToWorker, new Date()]
+            });
+          })
+          .catch(error => console.log(error));
+        this.$nextTick(() => {
+          EventBus.$emit("notification.add", {
+            id: 1,
+            title: this.$t(
+              "App.job.jobPayoutNotificationTitle" /* Your worker thanks you! */
+            ),
+            text: this.$t(
+              "App.job.jobPayoutNotificationTitleText" /* Payout Complete. Your account is being debited. */
+            )
+          });
+          this.isLoading = false;
+        });
+      });
+    },
+    async postEditedJob() {
+      this.isLoading = true;
+
+      const jobData = {
+        description: this.job.brief,
+        deliverable: this.job.deliverable
+      };
+      const jobRef = await db
+        .collection("jobs")
+        .doc(this.job.taskId)
+        .get();
+      jobRef.ref
+        .update({
+          ...jobData
+        })
+        .then(function() {
+          console.log("Record successfully updated!");
+        })
+        .catch(function(error) {
+          console.error("Error updating record: ", error);
+        });
+
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.isLoading = false;
+
+          EventBus.$emit("notification.add", {
+            id: 1,
+            title: this.$t(
+              "App.job.jobUpdatedNotificationTitle" /* Success! */
+            ),
+            text: this.$t(
+              "App.job.jobUpdatedNotificationText" /* Job updated successfully! */
+            )
+          });
+        }, 700);
+      });
+      this.isEditingJobDetails = false;
+    },
+    uploadProofOfWork() {
+      // Add Analytics event
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Upload Proof of Work",
+        label: "Upload Proof of Work",
+        value: ""
+      });
+
+      this.isLoading = true;
+      this.uploadImages().then(res => {
+        console.log("Im done running both funcs");
+      });
+    },
+    async uploadImages() {
+      const self = this;
+      const results = this.images.map(async file => {
+        const imageUrl = await this.uploadFile(file, self.job.taskId);
+        return { name: file.name, url: imageUrl };
+      });
+
+      Promise.all(results).then(async imageUrls => {
+        if (!Reflect.has(this.job, "images")) this.job.images = [];
+        const images = [...this.job.images, ...imageUrls];
+        const result = await db
+          .collection("jobs")
+          .doc(this.job.taskId)
+          .set({ images }, { merge: true })
+          .then(docRef => {
+            console.log("updated!", docRef);
+          });
+      });
+    },
+    uploadFile(file, jobId) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        const self = this;
+        const storageRef = firebaseStorage
+          .ref()
+          .child("jobs/" + jobId + "/" + file.name + "-" + uuid.v1());
+        let uploadTask = storageRef.put(file);
+        uploadTask.on(
+          "state_changed",
+          function(snapshot) {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            // TODO fix on screen loading percentage of image upload
+            // self.loadingText =
+            //   this.$t('App.job.uploadedPhotoProgress' /* Upload is */) +
+            //   progress +
+            //   this.$t(
+            //     'App.job.uploadedPhotoProgress2' /* % done. Processing post. */);
+            // this.upload.progress = (uploadTask.snapshot.bytesTransferred / uploadTask.snapshot.totalBytes) * 100;
+            // console.log(this.upload.progress);
+          },
+          function(error) {
+            reject(error);
+          },
+          async function() {
+            const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+            resolve(downloadUrl);
+          }
+        );
+        this.isLoading = false;
+      });
+    },
+    async fileUploaded(event) {
+      const image = event.target.files[0];
+      this.images.push(image);
+    },
+    async claimJobInEscrowContract() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        const JobID = this.job.taskId;
+
+        web3.eth.getAccounts(async (error, accounts) => {
+          const worker = accounts[0]; // account that is logged into MetaMask
+
+          if (error) {
+            throw new {
+              name: "Exception",
+              message: "Accounts are not found"
+            }();
+          }
+
+          try {
+            const result = await EscrowInstance.claimJob(JobID, {
+              from: worker
+            });
+            console.log(result);
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async cancelJobInEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        const JobID = this.job.taskId;
+
+        web3.eth.getAccounts(async (error, accounts) => {
+          const manager = accounts[0];
+
+          try {
+            console.log("JobID", JobID);
+            console.log(typeof JobID);
+
+            const result = await EscrowInstance.cancelJob(JobID, {
+              from: manager
+            });
+            resolve(result.logs[0].args.JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async setEvaluatorInEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        const JobID = this.job.taskId;
+
+        web3.eth.getAccounts(async (error, accounts) => {
+          const evaluator = accounts[0]; // account that is logged into MetaMask
+
+          if (error) {
+            throw new {
+              name: "Exception",
+              message: "Accounts are not found"
+            }();
+          }
+
+          try {
+            await EscrowInstance.setEvaluator(JobID, { from: evaluator });
+            resolve(JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async proofOfWorkToEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        web3.eth.getAccounts(async (err, accounts) => {
+          const worker = accounts[0];
+          const JobID = this.job.taskId;
+
+          try {
+            const result = await EscrowInstance.provideProofOfWork(JobID, {
+              from: worker
+            });
+            resolve(JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async evaluateJobToEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        web3.eth.getAccounts(async (err, accounts) => {
+          const JobID = this.job.taskId;
+          const evaluator = accounts[0]; // Person logged into MetaMask
+
+          try {
+            console.log("JobID", JobID);
+            console.log(typeof JobID);
+
+            const result = await EscrowInstance.confirmProofOfWork(JobID, {
+              from: evaluator
+            });
+            resolve(JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async managerApprovesPaymentInEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        const JobID = this.job.taskId;
+
+        web3.eth.getAccounts(async (err, accounts) => {
+          const manager = accounts[0];
+
+          try {
+            const result = await EscrowInstance.approvePayment(JobID, {
+              from: manager
+            });
+            resolve(JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    },
+    async workerClaimPayoutInEscrow() {
+      return new Promise(async (resolve, reject) => {
+        const Escrow = truffleContract(EscrowContract);
+        const DAI = truffleContract(DAIContract);
+
+        window.Escrow = Escrow;
+        Escrow.setProvider(
+          this.$store.state.web3.web3Instance().currentProvider
+        );
+        Escrow.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+        const EscrowInstance = await Escrow.deployed();
+        const DAIInstance = await DAI.deployed();
+
+        window.EscrowInstance = EscrowInstance;
+        const pool = EscrowInstance.address;
+
+        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+        DAI.defaults({
+          from: this.$store.state.web3.web3Instance().eth.coinbase
+        });
+
+        web3.eth.getAccounts(async (error, accounts) => {
+          const worker = accounts[0];
+          const JobID = this.job.taskId;
+
+          console.log(JobID);
+
+          try {
+            const Job = await EscrowInstance.getJob(JobID);
+
+            const result = await EscrowInstance.claimPayment(JobID, {
+              from: worker
+            });
+
+            resolve(JobID);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
     }
   }
+};
 </script>
 
 <style lang="scss" module>
