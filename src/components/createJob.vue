@@ -318,6 +318,15 @@
           return
         }
 
+        if (this.$store.state.web3.balance <= 0) {
+            EventBus.$emit('notification.add', {
+            id: 1,
+            title: this.$t("App.helloMetaMask.account"),
+            text: this.$t("App.insufficient.balance")
+          });
+          return false;
+        }
+
         // Analytics
         this.$ma.trackEvent({category: 'Click', action: 'Create Job Click', label: 'Create Job', value: ''})
 

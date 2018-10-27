@@ -34,6 +34,7 @@
                 required
                 :placeholder="$t('App.tip.AmountPlaceholderText') /* Amount in USD */"
                 validation="required"
+                @change="checkBalance"
                 v-model="form.amount"/>
               <p><em>{{ $t('App.tip.amountDescription' /* Enter how much you would like to send in USD. */) }}</em></p>
 
@@ -83,6 +84,16 @@
       ...mapActions({
         openNetworkModal: types.OPEN_NETWORK_MODAL
       }),
+      checkBalance() {
+        if (this.$store.state.web3.balance < this.form.amount) {
+            EventBus.$emit('notification.add', {
+            id: 1,
+            title: this.$t("App.helloMetaMask.account"),
+            text: this.$t("App.insufficient.balance")
+          });
+          return false;
+        }
+      },
       async makeTipEscrow() {
 
         if (this.$store.state.web3.networkId !== "3") {

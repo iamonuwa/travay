@@ -25,6 +25,7 @@
   "App.helloFirefox.switchToFirefox": "You are not currently using the Firefox browser. To use this application you must switch to FireFox.",
   "App.home.howToKnowOfNewJobs": "How Will I know When There Are New Jobs?",
   "App.network.offline": "You are currently offline. Some features will not work offline",
+  "App.insufficient.balance": "You have insufficient amount to perform this transaction",
   "App.home.earn": "Earn Stable Income",
   "App.home.sameDayJobs": "Same Day Jobs Marketplace",
   "App.home.sameDayJobsDescription": "Travay provides a citizen driven, long-term jobs market, helping to provide to economic mobility.",

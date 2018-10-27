@@ -15,6 +15,7 @@
         placeholder="Enter Amount"
         validation="required"
         type="number"
+        @change="checkBalance"
         v-model="sponsorAmount"/>
 
       <vue-button primary @click.prevent.stop="sponsorJob">Sponsor</vue-button>
@@ -75,6 +76,16 @@
       ...mapActions({
         openNetworkModal: types.OPEN_NETWORK_MODAL
       }),
+      checkBalance() {
+        if (this.$store.state.web3.balance < this.sponsorAmount) {
+            EventBus.$emit('notification.add', {
+            id: 1,
+            title: this.$t("App.helloMetaMask.account"),
+            text: this.$t("App.insufficient.balance")
+          });
+          return false;
+        }
+      },
       sponsorJob() {
 
         this.isLoading = true;
