@@ -462,11 +462,9 @@ export default {
         Escrow.setProvider(
           this.$store.state.web3.web3Instance().currentProvider
         );
-
         Escrow.defaults({
           from: this.$store.state.web3.web3Instance().eth.coinbase
         });
-
         DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
 
         const EscrowInstance = await Escrow.deployed();
@@ -488,74 +486,50 @@ export default {
           const manager = accounts[0];
           const sender = accounts[0];
 
+          console.log(EscrowInstance.address, DAIInstance.address);
+
           web3.eth.getGasPrice(async (err, gasPrice) => {
             gasPrice = gasPrice.toNumber();
 
-            const daiBalance = DAIInstance.balanceOf(manager);
+            console.log("Gas Price ", gasPrice);
 
-            daiBalance
-              .then(async balance => {
-                if (balance < salary) {
-                  EventBus.$emit("notification.add", {
-                    id: 1,
-                    title: this.$t(
-                      "App.helloMetaMask.account" /* Ethereum Account */
-                    ),
-                    text: this.$t(
-                      "App.insufficient.daiBalance" /* You don't have enough Dai.  */
-                    )
-                  });
-                  this.isLoading = false;
-                  return false;
-                } else if (this.$store.state.web3.balance < gasPrice) {
-                  EventBus.$emit("notification.add", {
-                    id: 1,
-                    title: this.$t("App.helloMetaMask.account"),
-                    text: this.$t("App.insufficient.etherBalance")
-                  });
-                  return false;
-                } else {
-                  try {
-                    const approveGas = await DAIInstance.approve.estimateGas(
-                      EscrowInstance.address,
-                      salary,
-                      {
-                        from: sender
-                      }
-                    );
-                    console.log("Gas calcuated for Approve ", approveGas);
-                    await DAIInstance.approve(EscrowInstance.address, salary, {
-                      from: sender,
-                      gas: approveGas,
-                      gasPrice: gasPrice
-                    });
-                    console.log(
-                      "values === ",
-                      description,
-                      salary,
-                      parseInt(noOfTotalPayments)
-                    );
-                    const result = await EscrowInstance.createJob(
-                      description,
-                      salary,
-                      parseInt(noOfTotalPayments),
-                      {
-                        from: manager
-                      }
-                    );
-                    console.log(result);
-                    console.log(result.logs[0].args.JobID.toNumber());
-                    resolve(result.logs[0].args.JobID.toNumber());
-                  } catch (error) {
-                    reject(error);
-                  }
+            try {
+
+              const approveGas = await DAIInstance.approve.estimateGas(
+                EscrowInstance.address,
+                salary,
+                {
+                  from: sender
                 }
-              })
-              .catch(err => {
-                console.log(err);
-                this.isLoading = false;
-                return false;
+              );
+
+              console.log("Gas calcuated for Approve ", approveGas);
+
+              await DAIInstance.approve(EscrowInstance.address, salary, {
+                from: sender,
+                gas: approveGas,
+                gasPrice: gasPrice
               });
+              console.log(
+                "values === ",
+                description,
+                salary,
+               parseInt(noOfTotalPayments)
+              );
+              const result = await EscrowInstance.createJob(
+                description,
+                salary,
+                parseInt(noOfTotalPayments),
+                {
+                  from: manager
+                }
+              );
+              console.log(result);
+              console.log(result.logs[0].args.JobID.toNumber());
+              resolve(result.logs[0].args.JobID.toNumber());
+            } catch (error) {
+              reject(error);
+            }
           });
         });
       });
