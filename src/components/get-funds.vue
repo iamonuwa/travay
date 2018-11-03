@@ -9,7 +9,7 @@
 
     <vue-grid-row>
       <vue-grid-item>
-        <h2>Need DAI?</h2>
+        <h2>Need Dai?</h2>
         <ol>
           <li>Click the button below</li>
           <li>Select the first option "MetaMask."</li>
@@ -17,7 +17,7 @@
           <li>Accept the prompts from MetaMask.</li>
         </ol>
         <br>
-        <vue-button primary @click.prevent="buyDAI()">Buy DAI</vue-button>
+        <vue-button primary @click.prevent="buyDAI()">Buy Dai</vue-button>
       </vue-grid-item>
     </vue-grid-row>
 

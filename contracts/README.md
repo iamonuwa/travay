@@ -55,3 +55,23 @@ DAI_COIN_ADDRESS = "0xee3ea3cd9afd7cb2c476d44a70fc9ed4cd3ba438";
 
 ## v2
 
+## Workflow
+
+All are blockchain functions, listed in order unless otherwise noted.
+
+1. createJob
+2. cancelJob (at any time)
+3. claimJob
+```
+4. uploadProofOfWork (can be executed at any time and not on network)
+```
+5. markJobComplete
+6. setEvaluator (set at the time of job creation)
+7. evaluateJobAsCompletedSucessfully
+```
+8. evaluateJobAsCompletedUnsucessfully (can be executed at any time and not on network also a WIP)
+```
+9. payoutJob
+10. claimPayout
+11. makeTipEscrow (at any time)
+12. sponsorJob (at any time)

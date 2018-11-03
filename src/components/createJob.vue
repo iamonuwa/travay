@@ -37,6 +37,7 @@
                   name="task"
                   id="task"
                   :placeholder="$t('App.createJob.JobTitleInForm')"
+                  @change="checkBalance"
                   v-model="form.task"
                   required/>
               </vue-grid-item>
@@ -311,13 +312,52 @@ export default {
     removeRequirement(i) {
       this.form.deliverable.splice(i, 1);
     },
+    async checkBalance() {
+      this.isLoading = true;
+
+      const DAI = truffleContract(DAIContract);
+      DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+      const DAIInstance = await DAI.deployed();
+      DAI.defaults({
+        from: this.$store.state.web3.web3Instance().eth.coinbase
+      });
+
+      web3.eth.getAccounts((error, accounts) => {
+        const daiBalance = DAIInstance.balanceOf(accounts[0]);
+
+        daiBalance.then(balance => {
+          if (balance / Math.pow(10, 18) < this.form.salary) {
+            EventBus.$emit("notification.add", {
+              id: 1,
+              title: this.$t(
+                "App.helloMetaMask.account" /* Ethereum Account */
+              ),
+              text: this.$t(
+                "App.insufficient.daiBalance" /* You don't have enough funds to perform this transaction.  */
+              )
+            });
+            this.isLoading = false;
+            return false;
+          }
+        });
+      });
+    },
     createJob() {
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Create Job Click",

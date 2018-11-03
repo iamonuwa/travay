@@ -28,7 +28,7 @@
       <br>
       <br>
       <!--TODO: fix: modal overlay remains after navigating to new page-->
-      <!--<p>You will need DAI to Sponsor a Job. You can get some <router-link :to="'/get-funds'">{{-->
+      <!--<p>You will need Dai to Sponsor a Job. You can get some <router-link :to="'/get-funds'">{{-->
       <!--$t('App.footer.getStartedGuide' /* Get Started */) }}</router-link>.-->
       <!--</p>-->
 
@@ -75,35 +75,36 @@ export default {
     ...mapActions({
       openNetworkModal: types.OPEN_NETWORK_MODAL
     }),
-        async checkBalance() {
+    async checkBalance() {
       this.isLoading = true;
-        const DAI = truffleContract(DAIContract);
-        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
-        const DAIInstance = await DAI.deployed();
-        DAI.defaults({
-          from: this.$store.state.web3.web3Instance().eth.coinbase
+      const DAI = truffleContract(DAIContract);
+      DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+      const DAIInstance = await DAI.deployed();
+      DAI.defaults({
+        from: this.$store.state.web3.web3Instance().eth.coinbase
+      });
+      web3.eth.getAccounts((error, accounts) => {
+        const daiBalance = DAIInstance.balanceOf(accounts[0]);
+        daiBalance.then(balance => {
+          if (balance / Math.pow(10, 18) < this.sponsorAmount) {
+            EventBus.$emit("notification.add", {
+              id: 1,
+              title: this.$t(
+                "App.helloMetaMask.account" /* Ethereum Account */
+              ),
+              text: this.$t(
+                "App.insufficient.daiBalance" /* You don't have enough funds to perform this transaction.  */
+              )
+            });
+            this.isLoading = false;
+            return false;
+          }
         });
-        web3.eth.getAccounts((error, accounts) => {
-          const daiBalance = DAIInstance.balanceOf(accounts[0]);
-          daiBalance.then(balance => {
-            if ((balance / Math.pow(10, 18)) < this.sponsorAmount) {
-              EventBus.$emit("notification.add", {
-                id: 1,
-                title: this.$t(
-                  "App.helloMetaMask.account" /* Ethereum Account */
-                ),
-                text: this.$t(
-                  "App.insufficient.balance" /* You don't have enough funds to perform this transaction.  */
-                )
-              });
-              this.isLoading = false;
-              return false;
-            }
-          });
-        });
+      });
     },
     sponsorJob() {
       this.isLoading = true;
+
       this.sponsorAmountToEscrow()
         .then(result => {
           this.$emit("sponsorSubmit", this.sponsorAmount);
@@ -111,7 +112,7 @@ export default {
           this.isLoading = false;
         })
         .catch(error => {
-          console.log(error)
+          console.log(error);
         });
     },
     async sponsorAmountToEscrow() {
@@ -121,6 +122,15 @@ export default {
         label: "Sponsor a Job",
         value: ""
       });
+
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
 
       return new Promise(async (resolve, reject) => {
         const Escrow = truffleContract(EscrowContract);

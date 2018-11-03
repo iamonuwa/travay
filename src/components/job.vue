@@ -304,14 +304,13 @@
                     additional information. */)
                     }}</p>
                   <br>
-                  <!-- <a v-userRole.signedIn.canBecomeEvaluator="{role: job.role}" @click="setEvaluator()" -->
-                  <a @click="setEvaluator()"
+                  <!-- <a v-userRole.signedIn.canBecomeEvaluator="{role: job.role}" @click="setEvaluator()"
                      style="color: white;">
                     <vue-button primary>
                       {{ $t('App.job.becomeEvaluatorForJob' /* Become the Evaluator */) }}
                     </vue-button>
                   </a>
-                  <br><br>
+                  <br><br> -->
                   <!-- <a @click="evaluateJobAsCompletedSucessfully()" v-userRole.signedIn.evaluator="{role: job.role}" -->
                   <a @click="evaluateJobAsCompletedSucessfully()"
                      style="color: white;">
@@ -430,8 +429,7 @@ export default {
   },
   created() {
     const taskId = this.$route.params.id;
-    db
-      .collection("jobs")
+    db.collection("jobs")
       .where("taskId", "==", taskId)
       .get()
       .then(snapshot => {
@@ -507,7 +505,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Canceled Job",
@@ -553,7 +559,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Set Evaluator",
@@ -566,8 +580,7 @@ export default {
       // TODO evaluator's ID is not being stored in Firebase
       this.setEvaluatorInEscrow().then(JobID => {
         try {
-          db
-            .collection("jobs")
+          db.collection("jobs")
             .doc(docId)
             .update({
               "role.1": this.userId
@@ -618,7 +631,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Mark Job Complete",
@@ -662,7 +683,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Evaluate Job As Completed Successfully",
@@ -703,7 +732,6 @@ export default {
     async evaluateJobAsCompletedUnsucessfully() {
       // const jobId = this.job.taskId;
 
-      // Analytics
       this.$ma.trackEvent({
         category: "Click",
         action: "Evaluate Job As Completed Unsuccessfully",
@@ -740,7 +768,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Claim Payout",
@@ -753,8 +789,7 @@ export default {
       this.workerClaimPayoutInEscrow().then(JobID => {
         // TODO updating payouts array in Firebase not working
         try {
-          db
-            .collection("jobs")
+          db.collection("jobs")
             .doc(docId)
             .update({
               payouts: new Date()
@@ -805,7 +840,6 @@ export default {
         return;
       }
 
-      // Analytics
       this.$ma.trackEvent({
         category: "Click",
         action: "Sponsor Job from Job Page",
@@ -836,7 +870,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Claim Job Click",
@@ -862,8 +904,7 @@ export default {
       this.claimJobInEscrowContract()
         .then(response => {
           try {
-            db
-              .collection("jobs")
+            db.collection("jobs")
               .doc(docId)
               .update({
                 "role.2": this.userId
@@ -917,7 +958,15 @@ export default {
         return;
       }
 
-      // Analytics
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Payout Job",
@@ -930,8 +979,7 @@ export default {
       this.isLoading = true;
 
       this.managerApprovesPaymentInEscrow().then(JobID => {
-        db
-          .collection("jobs")
+        db.collection("jobs")
           .doc(docId)
           .get()
           .then(snapshots => {
@@ -1003,7 +1051,6 @@ export default {
       this.isEditingJobDetails = false;
     },
     uploadProofOfWork() {
-      // Analytics
       this.$ma.trackEvent({
         category: "Click",
         action: "Upload Proof of Work",
@@ -1047,7 +1094,7 @@ export default {
           "state_changed",
           function(snapshot) {
             const progress =
-              snapshot.bytesTransferred / snapshot.totalBytes * 100;
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             // TODO fix on screen loading percentage of image upload
             // self.loadingText =
             //   this.$t('App.job.uploadedPhotoProgress' /* Upload is */) +
@@ -1273,7 +1320,9 @@ export default {
             console.log("Gas Price ", gasPrice);
 
             try {
-              const result = await EscrowInstance.setEvaluator(JobID, { from: evaluator });
+              const result = await EscrowInstance.setEvaluator(JobID, {
+                from: evaluator
+              });
 
               resolve(JobID, result);
             } catch (error) {

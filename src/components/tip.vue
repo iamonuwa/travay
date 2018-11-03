@@ -10,8 +10,8 @@
 
           <vue-grid-item>
             <h1>{{ $t('App.tip.tipPageTitle' /* Tip Anyone! */) }}</h1>
-            <p>{{ $t('App.tip.tipPageDescription' /* Send cryptocurrency (DAI) to anyone. For a job well done, for a
-              service, rent, food and more. Remember that $1 DAI is equal to $1 USD. */) }}</p>
+            <p>{{ $t('App.tip.tipPageDescription' /* Send cryptocurrency (Dai) to anyone. For a job well done, for a
+              service, rent, food and more. Remember that $1 Dai is equal to $1 USD. */) }}</p>
             <br>
 
             <form @submit.prevent="makeTipEscrow()">
@@ -24,7 +24,7 @@
                 validation="required"
                 v-model="form.receiver"/>
               <p><em>{{ $t('App.tip.receiverDescription' /* Paste in the ethereum address of the person who should receive
-                your DAI. Remember this is irreversible so make sure you have the right address. */) }}</em></p>
+                your Dai. Remember this is irreversible so make sure you have the right address. */) }}</em></p>
 
               <br>
 
@@ -84,32 +84,36 @@ export default {
     ...mapActions({
       openNetworkModal: types.OPEN_NETWORK_MODAL
     }),
-        async checkBalance() {
+    async checkBalance() {
       this.isLoading = true;
-        const DAI = truffleContract(DAIContract);
-        DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
-        const DAIInstance = await DAI.deployed();
-        DAI.defaults({
-          from: this.$store.state.web3.web3Instance().eth.coinbase
+
+      const DAI = truffleContract(DAIContract);
+      DAI.setProvider(this.$store.state.web3.web3Instance().currentProvider);
+
+      const DAIInstance = await DAI.deployed();
+      DAI.defaults({
+        from: this.$store.state.web3.web3Instance().eth.coinbase
+      });
+
+      web3.eth.getAccounts((error, accounts) => {
+        const daiBalance = DAIInstance.balanceOf(accounts[0]);
+
+        daiBalance.then(balance => {
+          if (balance / Math.pow(10, 18) < this.form.amount) {
+            EventBus.$emit("notification.add", {
+              id: 1,
+              title: this.$t(
+                "App.helloMetaMask.account" /* Ethereum Account */
+              ),
+              text: this.$t(
+                "App.insufficient.daiBalance" /* You don't have enough funds to perform this transaction.  */
+              )
+            });
+            this.isLoading = false;
+            return false;
+          }
         });
-        web3.eth.getAccounts((error, accounts) => {
-          const daiBalance = DAIInstance.balanceOf(accounts[0]);
-          daiBalance.then(balance => {
-            if ((balance / Math.pow(10, 18)) < this.form.amount) {
-              EventBus.$emit("notification.add", {
-                id: 1,
-                title: this.$t(
-                  "App.helloMetaMask.account" /* Ethereum Account */
-                ),
-                text: this.$t(
-                  "App.insufficient.balance" /* You don't have enough funds to perform this transaction.  */
-                )
-              });
-              this.isLoading = false;
-              return false;
-            }
-          });
-        });
+      });
     },
     async makeTipEscrow() {
       if (this.$store.state.web3.networkId !== "3") {
@@ -117,7 +121,15 @@ export default {
         return;
       }
 
-      // Add Analytics event
+      if (this.$store.state.web3.balance <= 0) {
+        EventBus.$emit("notification.add", {
+          id: 1,
+          title: this.$t("App.helloMetaMask.account"),
+          text: this.$t("App.insufficient.etherBalance")
+        });
+        return false;
+      }
+
       this.$ma.trackEvent({
         category: "Click",
         action: "Make Tip Escrow",
@@ -163,8 +175,6 @@ export default {
             console.log("Gas Price ", gasPrice);
 
             try {
-
-
               const approveGas = await DAIInstance.approve.estimateGas(
                 receiver,
                 payment,
@@ -185,8 +195,6 @@ export default {
                 from: sender
               });
 
-
-
               this.$nextTick(() => {
                 setTimeout(() => {
                   self.isLoading = false;
@@ -195,7 +203,7 @@ export default {
                     id: 1,
                     title: this.$t("App.tip.tipSentTitle" /* Success! */),
                     text: this.$t(
-                      "App.tip.tipSentText" /* Your DAI transfer is complete! */
+                      "App.tip.tipSentText" /* Your Dai transfer is complete! */
                     )
                   });
                 }, 800);

@@ -10,7 +10,7 @@
 
       <vue-grid-row>
         <vue-grid-item>
-          <h2>Have Ether and need DAI?</h2>
+          <h2>Have Ether and need Dai?</h2>
           <ol>
             <li>Click the button below</li>
             <li>Select the first option "MetaMask."</li>
@@ -18,13 +18,13 @@
             <li>Accept the prompts from MetaMask.</li>
           </ol>
           <br>
-          <vue-button primary @click.prevent="buy()">Buy DAI</vue-button>
+          <vue-button primary @click.prevent="buy()">Buy Dai</vue-button>
         </vue-grid-item>
       </vue-grid-row>
 
       <vue-grid-row>
         <vue-grid-item>
-          <h2>Have DAI and need Ether?</h2>
+          <h2>Have Dai and need Ether?</h2>
           <ol>
             <li>Click the button below</li>
             <li>Select the first option "MetaMask."</li>
@@ -32,7 +32,7 @@
             <li>Accept the prompts from MetaMask.</li>
           </ol>
           <br>
-          <vue-button primary @click.prevent="buy()">Buy DAI</vue-button>
+          <vue-button primary @click.prevent="buy()">Buy Dai</vue-button>
         </vue-grid-item>
       </vue-grid-row>
 

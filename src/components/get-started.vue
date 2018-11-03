@@ -46,7 +46,7 @@
             target="_blank">{{ $t('App.getStarted.here' /* here */) }}</a>.
           </li>
           <li>
-            {{ $t('App.getStarted.fundMetaMask' /* Fund your MetaMask account with DAI by clicking */) }} <a rel="noopener noreferrer"
+            {{ $t('App.getStarted.fundMetaMask' /* Fund your MetaMask account with Dai by clicking */) }} <a rel="noopener noreferrer"
             href="https://kyber.network/swap/eth_dai" target="_blank">
             {{ $t('App.getStarted.here' /* here */) }}</a>.
           </li>
