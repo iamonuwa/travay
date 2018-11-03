@@ -19,7 +19,6 @@
   "App.helloMetaMask.installed": "Installed",
   "App.helloMetaMask.network": "Network",
   "App.helloMetaMask.account": "Ethereum Account",
-  "App.helloMetaMask.balance": "Balance",
   "App.helloMetaMask.notMainNet": "You are not currently on the Main Network, please switch to the Main Network to use this application.",
   "App.helloMetaMask.unlockMetaMask": "Please Unlock MetaMask",
   "App.helloFirefox.switchToFirefox": "You are not currently using the Firefox browser. To use this application you must switch to FireFox.",

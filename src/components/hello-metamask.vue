@@ -9,9 +9,6 @@
         <p v-if="network !== 'Main Ethereum Network'"> {{
           $t('App.helloMetaMask.notMainNet') /* You are not currently on the Main Network, please switch to the Main
           Network to use this application. */}}</p>
-        <p v-else></p>
-        <p>{{ $t('App.helloMetaMask.account' /* Ethereum Account */) }}: {{ coinbase }}</p>
-        <!--<p>{{ $t('App.helloMetaMask.balance' /* Balance */) }}: {{ balance }} Wei // {{ ethBalance }} Eth</p>-->
       </vue-grid-item>
     </vue-grid-row>
 
@@ -22,8 +19,8 @@
       </vue-grid-item>
     </vue-grid-row>
 
-    <!--<vue-button class="metamask-button">{{ $t('App.helloMetaMask.connectMetaMaskButton' /* CONNECT METAMASK */)-->
-      <!--}}</vue-button>-->
+    <!-- <vue-button class="metamask-button">{{ $t('App.helloMetaMask.connectMetaMaskButton' /* CONNECT METAMASK */)-->
+      <!--}}</vue-button> -->
 
   </vue-grid>
 </template>

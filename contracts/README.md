@@ -8,6 +8,8 @@ rm -rf build
 
 truffle migrate --network <development, ropsten, etc>
 
+truffle migrate --network ropsten
+
 ```
 
 ## Run tests
