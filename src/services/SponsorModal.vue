@@ -168,12 +168,8 @@ export default {
             console.log("Gas Price ", gasPrice);
 
             try {
-              await DAIInstance.approve(EscrowInstance.address, payment, {
-                from: sponsor
-              });
-
               const approveGas = await DAIInstance.approve.estimateGas(
-                receiver,
+                EscrowInstance.address,
                 payment,
                 {
                   from: sender
