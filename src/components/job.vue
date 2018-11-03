@@ -500,6 +500,13 @@ export default {
       this.job.deliverable.splice(index, 1);
     },
     cancelJob() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Canceled Job",
+        label: "Cancel Job",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -513,13 +520,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Canceled Job",
-        label: "Cancel Job",
-        value: ""
-      });
 
       this.isLoading = true;
 
@@ -554,6 +554,13 @@ export default {
         });
     },
     setEvaluator() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Set Evaluator",
+        label: "Set Evaluator",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -567,13 +574,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Set Evaluator",
-        label: "Set Evaluator",
-        value: ""
-      });
 
       this.isLoading = true;
 
@@ -626,6 +626,13 @@ export default {
       });
     },
     markJobComplete() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Mark Job Complete",
+        label: "Mark Job Complete",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -639,13 +646,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Mark Job Complete",
-        label: "Mark Job Complete",
-        value: ""
-      });
 
       const jobId = this.job.taskId;
 
@@ -678,6 +678,13 @@ export default {
         });
     },
     evaluateJobAsCompletedSucessfully() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Evaluate Job As Completed Successfully",
+        label: "Evaluate Job As Completed Successfully",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -691,13 +698,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Evaluate Job As Completed Successfully",
-        label: "Evaluate Job As Completed Successfully",
-        value: ""
-      });
 
       this.isLoading = true;
 
@@ -730,8 +730,6 @@ export default {
         });
     },
     async evaluateJobAsCompletedUnsucessfully() {
-      // const jobId = this.job.taskId;
-
       this.$ma.trackEvent({
         category: "Click",
         action: "Evaluate Job As Completed Unsuccessfully",
@@ -763,6 +761,13 @@ export default {
       // }
     },
     claimPayout() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Claim Payout",
+        label: "Claim Payout",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -776,13 +781,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Claim Payout",
-        label: "Claim Payout",
-        value: ""
-      });
 
       this.isLoading = true;
 
@@ -835,17 +833,17 @@ export default {
       });
     },
     sponsorJob(taskId) {
-      if (this.$store.state.web3.networkId !== "3") {
-        this.openNetworkModal();
-        return;
-      }
-
       this.$ma.trackEvent({
         category: "Click",
         action: "Sponsor Job from Job Page",
         label: "Sponsor Job from Job Page",
         value: ""
       });
+
+      if (this.$store.state.web3.networkId !== "3") {
+        this.openNetworkModal();
+        return;
+      }
 
       if (!this.userId) {
         this.openLoginModal();
@@ -865,6 +863,13 @@ export default {
       });
     },
     claimJob(docId) {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Claim Job Click",
+        label: "Claim Job",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -878,13 +883,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Claim Job Click",
-        label: "Claim Job",
-        value: ""
-      });
 
       this.isLoading = true;
 
@@ -953,6 +951,13 @@ export default {
         });
     },
     payoutJob(docId) {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Payout Job",
+        label: "Payout Job",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -966,13 +971,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Payout Job",
-        label: "Payout Job",
-        value: ""
-      });
 
       const taskId = this.$route.params.id;
 

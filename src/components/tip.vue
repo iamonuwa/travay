@@ -84,6 +84,11 @@ export default {
     ...mapActions({
       openNetworkModal: types.OPEN_NETWORK_MODAL
     }),
+    clearForm() {
+      Object.keys(this.form).forEach(key => {
+        this.form[key] = "";
+      });
+    },
     async checkBalance() {
       this.isLoading = true;
 
@@ -116,6 +121,13 @@ export default {
       });
     },
     async makeTipEscrow() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Make Tip Escrow",
+        label: "Make Tip Escrow",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -129,13 +141,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Make Tip Escrow",
-        label: "Make Tip Escrow",
-        value: ""
-      });
 
       const self = this;
       self.isLoading = true;
@@ -203,7 +208,7 @@ export default {
                     id: 1,
                     title: this.$t("App.tip.tipSentTitle" /* Success! */),
                     text: this.$t(
-                      "App.tip.tipSentText" /* Your Dai transfer is complete! */
+                      "App.tip.tipSentText" /* Your DAI transfer is complete! */
                     )
                   });
                 }, 800);
@@ -216,11 +221,6 @@ export default {
             }
           });
         });
-      });
-    },
-    clearForm() {
-      Object.keys(this.form).forEach(key => {
-        this.form[key] = "";
       });
     }
   }

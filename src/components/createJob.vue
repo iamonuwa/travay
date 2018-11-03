@@ -344,6 +344,13 @@ export default {
       });
     },
     createJob() {
+      this.$ma.trackEvent({
+        category: "Click",
+        action: "Create Job Click",
+        label: "Create Job",
+        value: ""
+      });
+
       if (this.$store.state.web3.networkId !== "3") {
         this.openNetworkModal();
         return;
@@ -357,13 +364,6 @@ export default {
         });
         return false;
       }
-
-      this.$ma.trackEvent({
-        category: "Click",
-        action: "Create Job Click",
-        label: "Create Job",
-        value: ""
-      });
 
       this.isLoading = true;
       const { form } = this;
