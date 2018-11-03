@@ -1318,9 +1318,7 @@ export default {
             console.log("Gas Price ", gasPrice);
 
             try {
-              const result = await EscrowInstance.setEvaluator(JobID, {
-                from: evaluator
-              });
+              const result = await EscrowInstance.setEvaluator(JobID, { from: evaluator });
 
               resolve(JobID, result);
             } catch (error) {
