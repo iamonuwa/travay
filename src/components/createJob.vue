@@ -139,7 +139,7 @@
                   required/>
                 <div>{{ $t('App.createJob.salaryPayoutDisclaimer' /* Remember: (1) The salary you list above will be
                   deducted and paid to the worker evenly based on the total months you have typed above.
-                  (2) We collect 2% of the total salary amount. Based on the salary you have entered above the worker in
+                  (2) We collect 10% of the total salary amount. Based on the salary you have entered above the worker in
                   total will receive approximately: */) }} <strong>${{ estimatedWorkerPayout }}</strong>.
                 </div>
               </vue-grid-item>
@@ -540,7 +540,7 @@ export default {
       userId: types.GET_USER_ID
     }),
     estimatedWorkerPayout: function() {
-      return this.form.salary - this.form.salary * 0.02;
+      return this.form.salary - this.form.salary * 0.10;
     },
     haserrors() {
       return this.errors && this.errors.items.length > 0;

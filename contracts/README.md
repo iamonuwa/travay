@@ -57,6 +57,16 @@ DAI_COIN_ADDRESS = "0xee3ea3cd9afd7cb2c476d44a70fc9ed4cd3ba438";
 
 ## v2
 
+Main Net
+Contract: https://etherscan.io/address/
+ARBITRATOR = "0xa7c2662a534a0ae22e8b0f27d6a099e3b3971c6a";
+DAI_COIN_ADDRESS = "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359";
+
+Ropsten
+Contract: https://ropsten.etherscan.io/address/0xf42261ec5bc628f42da287b30ae4bce7b264453e
+ARBITRATOR = "0xB06cEF6B14dd249f5a0977F645436cC4f4095325";
+DAI_COIN_ADDRESS = "0xf42261ec5bc628f42da287b30ae4bce7b264453e";
+
 ## Workflow
 
 All are blockchain functions, listed in order unless otherwise noted.

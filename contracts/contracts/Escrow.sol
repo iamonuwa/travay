@@ -118,7 +118,7 @@ contract Escrow{
     /// @dev Uses transferFrom on the DAI token contract
     /// @param _salary is the amount of salary deposited by the manager
     /// @param _noOfTotalPayments is the number of total payments iterations set by the manager
-    function createJob(string _description, uint _salary, uint _noOfTotalPayments) public {
+    function createJob(string _description, uint _salary, uint _noOfTotalPayments, address _evaluator) public {
         require(_salary > 0);
         require(_noOfTotalPayments > 0);
 
@@ -131,7 +131,7 @@ contract Escrow{
 
         require(DAI.allowance(msg.sender, address(this)) >= _salary);
 
-        emit JobCreated(msg.sender, finalSalary, _noOfTotalPayments, jobCount, _description);
+        emit JobCreated(msg.sender, finalSalary, _noOfTotalPayments, jobCount, _description, _evaluator);
         jobCount++;
 
         DAI.transferFrom(msg.sender, address(this), _salary);
