@@ -68,6 +68,13 @@ export default new Router({
       component: (resolve) => {
         require(['@/components/pricing.vue'], resolve)
       }
+    },
+    {
+      path: '/team',
+      name: 'team',
+      component: (resolve) => {
+        require(['@/components/team.vue'], resolve)
+      }
     }
   ]
 })
