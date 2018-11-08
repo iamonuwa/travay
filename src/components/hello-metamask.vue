@@ -16,11 +16,11 @@
       <vue-grid-item>
         <p><i aria-hidden="true" class="fa fa-times"></i>{{ $t('App.helloMetaMask.unlockMetaMask' /* Please Unlock
           MetaMask */) }}</p>
+        <vue-button class="metamask-button"
+                    @click="openConsent">{{ $t('App.helloMetaMask.connectMetaMaskButton' /* CONNECT METAMASK */)
+          }}</vue-button>
       </vue-grid-item>
     </vue-grid-row>
-
-    <!-- <vue-button class="metamask-button">{{ $t('App.helloMetaMask.connectMetaMaskButton' /* CONNECT METAMASK */)-->
-      <!--}}</vue-button> -->
 
   </vue-grid>
 </template>
@@ -40,6 +40,11 @@
       ]
     },
     name: "hello-metamask",
+    methods: {
+      openConsent() {
+        window.ethereum.enable()
+      }
+    },
     computed: mapState({
       isInjected: state => state.web3.isInjected,
       network: state => NETWORKS[state.web3.networkId],
