@@ -21,62 +21,70 @@
           }}</vue-button>
       </vue-grid-item>
     </vue-grid-row>
-
   </vue-grid>
+
 </template>
 
 <script>
-  import {NETWORKS} from "../util/constants/networks";
-  import {mapState} from "vuex";
+import { NETWORKS } from "../util/constants/networks";
+import { mapState } from "vuex";
 
-  export default {
-    metaInfo: {
-      title: "Metamask in Travay",
-      meta: [
-        {
-          name: "",
-          content: ""
-        }
-      ]
-    },
-    name: "hello-metamask",
-    methods: {
-      openConsent() {
-        window.ethereum.enable()
+export default {
+  metaInfo: {
+    title: "Metamask in Travay",
+    meta: [
+      {
+        name: "",
+        content: ""
       }
-    },
-    computed: mapState({
-      isInjected: state => state.web3.isInjected,
-      network: state => NETWORKS[state.web3.networkId],
-      coinbase: state => state.web3.coinbase,
-      balance: state => state.web3.balance,
-      ethBalance: state => {
-        if (state.web3.web3Instance !== null)
-          return state.web3.web3Instance().fromWei(state.web3.balance, "ether");
+    ]
+  },
+  name: "hello-metamask",
+  methods: {
+    openConsent() {
+      let ethereum = window.ethereum;
+      if (ethereum) {
+        ethereum.enable();
       }
-    })
-  };
+    }
+  },
+  computed: mapState({
+    isInjected: state => state.web3.isInjected,
+    network: state => NETWORKS[state.web3.networkId],
+    coinbase: state => state.web3.coinbase,
+    balance: state => state.web3.balance,
+    ethBalance: state => {
+      if (state.web3.web3Instance !== null)
+        return state.web3.web3Instance().fromWei(state.web3.balance, "ether");
+    }
+  })
+};
 </script>
 
 <style scoped>
-  .metamask-info {
-    text-align: center;
-    margin-top: 50px;
-  }
+.metamask-info {
+  text-align: center;
+  margin-top: 50px;
+}
 
-  .metamask-button {
-    width: auto;
-    height: auto;
-    box-shadow: 0 11px 24px rgba(0, 0, 0, 0.2);
-    border-radius: 15px;
-    background-image: linear-gradient(167deg, #f8911e 0%, #e8821e 48%, #d46d18 100%);
-  }
+.metamask-button {
+  width: auto;
+  height: auto;
+  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+  background-image: linear-gradient(
+    167deg,
+    #f8911e 0%,
+    #e8821e 48%,
+    #d46d18 100%
+  );
+}
 
-  #has-metamask {
-    color: green;
-  }
+#has-metamask {
+  color: green;
+}
 
-  #no-metamask {
-    color: red;
-  }
+#no-metamask {
+  color: red;
+}
 </style>
